@@ -78,12 +78,13 @@ Project-specific rules whose silent breach corrupts downstream work. Per §5, th
 
 ## Termination
 
-Mechanical (§6). The loop ends when either:
+Mechanical (§6). The loop ends when any of:
 
 - `problems_completed >= target` — set `status: "complete"`.
-- `stuck_count >= 3` — set `status: "stuck"`, write `output/stuck_report.md`, halt.
+- `stuck_count >= 3` — budget ceiling. Set `status: "stuck"`, write `output/stuck_report.md`, halt.
+- Last two REJECT reasons collide on failure class (same verifier, same issue category in its verdict) — delta-based (§6(b) corollary): the feedback isn't moving, so a third attempt is unlikely to. Set `status: "stuck"`, halt.
 
-No termination path depends only on LLM judgment. The budget exists precisely so "one more try" can't compound.
+No termination path depends only on LLM judgment. The budget caps pathological loops; the delta check catches loops that keep executing while producing nothing.
 
 ## Commit protocol
 

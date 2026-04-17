@@ -211,7 +211,11 @@ Any loop that could, in principle, run forever must have at least one mechanical
 
 A counter caps pathological infinite loops, but the harder case is loops that keep executing while producing nothing — a retry returning the same score, a revision with no new feedback. The mechanical termination should fire when the *next* iteration is unlikely to add value, not only when some absolute ceiling is hit. Two concrete forms: (i) delta-based — escalate when Δ(score, feedback-novelty) falls below a threshold; (ii) budget-based — cap retries at the count where marginal value historically saturates for that loop. Budget is the upfront approximation; delta is the runtime correction.
 
-### Corollary (c): LLM-judged inputs don't need schemas
+### Corollary (c): separate signal retries from noise retries
+
+Not every failed attempt is evidence the work is hard — some are tool timeouts, rate limits, malformed outputs from a flake. Counting both kinds against the same budget (premise 4, stochastic error blurs into infrastructure noise) means a flaky network can trip termination on a task the pipeline would otherwise complete, or a genuinely stuck loop hides behind "retry, it was just a blip." Keep two counters: one for signal-driven failures (verifier REJECT, solver gave up) that feed the termination predicate; one for noise-driven failures (tool error, parse failure) that get retried at the dispatch layer and bounded separately. When they collapse into one field, every downstream decision is noisier than it needs to be.
+
+### Corollary (d): LLM-judged inputs don't need schemas
 
 Capability 6 (reads-any-text) means the orchestrator reads any text, and §2 says structure costs tokens without buying safety unless it earns its keep. An enumerated verdict (`PASS/FAIL`, `NOVEL/INCREMENTAL/KNOWN`) is cheap to route on, so it's the default on hot paths — structure that earns its keep. On rare or ambiguous branches, the orchestrator can read the full artifact and decide; no verdict token needed. Verdicts buy efficiency, not correctness.
 

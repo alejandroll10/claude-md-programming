@@ -26,7 +26,7 @@ Every principle here is derived from properties of LLMs as a programming substra
 
 7. **Judges open-ended predicates.** Given a well-posed question, an LLM can read an artifact and return a verdict — "is this sound?", "does this meet the criteria?" *Consequence:* routing and verification aren't limited to mechanical rules over state; they can be semantic.
 
-8. **Fresh instances sample independently.** Two calls with different prompts and no shared context sample errors independently — the flip side of premise 4. *Consequence:* spawning a new subagent is a real reset, and multi-verifier checks aren't theater.
+8. **Fresh instances sample independently.** Two calls with different prompts and no shared context sample errors independently — the flip side of premise 4 (stochastic error). *Consequence:* spawning a new subagent is a real reset, and multi-verifier checks aren't theater.
 
 Each principle below can be read as a response to these properties — defending against a weakness, or relying on a capability. If a principle doesn't trace to at least one, it's decoration. The mapping:
 
@@ -44,8 +44,8 @@ Each principle below can be read as a response to these properties — defending
 
 Given the five premises, two system properties are forced:
 
-- **State carries history explicitly.** Accumulated context degrades recall (premise 2), drifts invariants (premise 3), and inherits prior-step biases (premise 1). History must live in a compact, explicit state object — not in a growing transcript.
-- **Control flow lives outside the worker.** An LLM routing itself takes shortcuts (premise 5), forgets its place across long runs (premise 3), and can't neutrally judge its own output (premise 1). The routing graph must be structure, not the worker's judgment.
+- **State carries history explicitly.** Accumulated context degrades recall (premise 2, long-context degradation), drifts invariants (premise 3, coherence drift), and inherits prior-step biases (premise 1, self-bias). History must live in a compact, explicit state object — not in a growing transcript.
+- **Control flow lives outside the worker.** An LLM routing itself takes shortcuts (premise 5, path-of-least-resistance), forgets its place across long runs (premise 3, coherence drift), and can't neutrally judge its own output (premise 1, self-bias). The routing graph must be structure, not the worker's judgment.
 
 CLAUDE.md is where both live: the state (or a pointer to where state is stored) and the high-level pipeline graph. The orchestrator is itself an LLM session with CLAUDE.md always loaded; each step it reads state, dispatches work to a subagent (a fresh session with its own context) or loads a doc, updates state, and transitions. Everything that is not control flow and not state belongs somewhere cheaper — a per-stage doc, a skill, a subagent (see §3, Delegate).
 
@@ -90,13 +90,13 @@ Long autonomous runs also produce human-facing artifacts — logs, dashboards, c
 
 ### Corollary (f): establish environmental ground truth before the loop
 
-Some facts the pipeline depends on describe the *environment*, not the work — which data sources exist, which tools have credentials, which services are up. If each stage re-derives or silently assumes these, they drift (premise 3) and fill gaps with shortcuts (premise 5). Capture them once at pipeline entry in a reference artifact every stage reads. This is a third artifact class beyond routing state and observability: the pipeline consumes it, but the orchestrator doesn't transition on it. If the environment changes mid-run, update the artifact and commit the update — silent drift in ground truth is the worst kind, because every stage downstream inherits the stale assumption.
+Some facts the pipeline depends on describe the *environment*, not the work — which data sources exist, which tools have credentials, which services are up. If each stage re-derives or silently assumes these, they drift (premise 3, coherence drift) and fill gaps with shortcuts (premise 5, path-of-least-resistance). Capture them once at pipeline entry in a reference artifact every stage reads. This is a third artifact class beyond routing state and observability: the pipeline consumes it, but the orchestrator doesn't transition on it. If the environment changes mid-run, update the artifact and commit the update — silent drift in ground truth is the worst kind, because every stage downstream inherits the stale assumption.
 
 ---
 
 ## 2. Context is costly
 
-Every always-loaded byte is a bet that its value exceeds its cost — and the cost isn't linear. Tokens scale linearly with length (dollars, latency), but attention (premise 2) and drift (premise 3) degrade the reliability of *everything already loaded*. Adding a marginal line taxes every other line's recall and every other invariant's hold. That convexity is why "earns its keep" has to be strict: the break-even bar rises as the doc grows.
+Every always-loaded byte is a bet that its value exceeds its cost — and the cost isn't linear. Tokens scale linearly with length (dollars, latency), but attention (premise 2, long-context degradation) and drift (premise 3, coherence drift) degrade the reliability of *everything already loaded*. Adding a marginal line taxes every other line's recall and every other invariant's hold. That convexity is why "earns its keep" has to be strict: the break-even bar rises as the doc grows.
 
 This turns CLAUDE.md programming from "write what you want" into a **budget problem**. Every always-loaded byte and every token passed to a subagent is evaluated on:
 
@@ -121,9 +121,9 @@ The orchestrator is not the worker (§1), and context is costly (§2). Put toget
 
 Three vehicles for delegation, ordered by cost and isolation:
 
-- **Docs.** Content the orchestrator reads on demand. Cheapest. Zero isolation — the content lands in the current context. Use for: stage procedures, reference material, content the orchestrator itself needs to act on. Stage docs specify the path, not just the goal — premise 5 fills underspecified paths with shortcuts.
+- **Docs.** Content the orchestrator reads on demand. Cheapest. Zero isolation — the content lands in the current context. Use for: stage procedures, reference material, content the orchestrator itself needs to act on. Stage docs specify the path, not just the goal — premise 5 (path-of-least-resistance) fills underspecified paths with shortcuts.
 - **Skills.** Self-contained modules (instructions, often with scripts or tools) that the harness loads on trigger. Lands in whoever is currently running — orchestrator or subagent. Use for: reusable capabilities that multiple workers need (math verification, domain formulas, standard workflows). Pairs especially well with agents — a fresh-context subagent loads only the skill it needs, without polluting the orchestrator.
-- **Agents.** Fresh-context sub-conversations with their own system prompt. Full isolation — capability 8 is what makes isolation real rather than rhetorical. Use for: work needing independent judgment (premise 1), long work that would pollute parent context (premise 2), parallel execution, or any place stochastic-error re-sampling matters (premise 4).
+- **Agents.** Fresh-context sub-conversations with their own system prompt. Full isolation — capability 8 (fresh-instance independence) is what makes isolation real rather than rhetorical. Use for: work needing independent judgment (premise 1, self-bias), long work that would pollute parent context (premise 2, long-context degradation), parallel execution, or any place stochastic-error re-sampling matters (premise 4, stochastic error).
 
 ### Pick the right vehicle
 
@@ -145,11 +145,11 @@ The orchestrator's loop becomes very short: read state, pick a vehicle, dispatch
 
 ## 4. Verify, don't trust
 
-Workers defend their own output (premise 1) and prefer cheap paths (premise 5), so self-reports aren't evidence the work got done. And any verdict, from a worker or a verifier, is a noisy sample of the underlying quality (premise 4) — one draw isn't enough. Verify everything the orchestrator will route on — using other LLMs (capability 7), not the same instance (capability 8).
+Workers defend their own output (premise 1, self-bias) and prefer cheap paths (premise 5, path-of-least-resistance), so self-reports aren't evidence the work got done. And any verdict, from a worker or a verifier, is a noisy sample of the underlying quality (premise 4, stochastic error) — one draw isn't enough. Verify everything the orchestrator will route on — using other LLMs (capability 7, judges predicates), not the same instance (capability 8, fresh-instance independence).
 
 ### Corollary (a): at least two verifiers, more when the signal is noisier
 
-A verifier's verdict is one noisy sample of the underlying quality (premise 4). Independent samples reduce variance and lower the odds that a correlated error goes unchecked; one verifier's report is evidence, not proof. Two is the floor — add more for steps where the signal is especially noisy, since variance falls roughly as 1/N.
+A verifier's verdict is one noisy sample of the underlying quality (premise 4, stochastic error). Independent samples reduce variance and lower the odds that a correlated error goes unchecked; one verifier's report is evidence, not proof. Two is the floor — add more for steps where the signal is especially noisy, since variance falls roughly as 1/N.
 
 ### Corollary (b): distinct framings
 
@@ -157,21 +157,21 @@ The 1/N variance bound in (a) assumes independence. Two verifiers given identica
 
 ### Corollary (c): at least one free-form
 
-A numeric score or enumerated verdict is cheap to route on, but easy to game. Two legs to the Goodhart argument: the score is a noisy proxy for latent quality (premise 4), and the model prefers the cheapest path to satisfying it (premise 5). Optimizing a noisy proxy under pressure diverges from the target. A free-form critique has no single number to climb; its feedback is qualitative and open-ended. Ship both: the structured verdict for routing, the free-form audit for content.
+A numeric score or enumerated verdict is cheap to route on, but easy to game. Two legs to the Goodhart argument: the score is a noisy proxy for latent quality (premise 4, stochastic error), and the model prefers the cheapest path to satisfying it (premise 5, path-of-least-resistance). Optimizing a noisy proxy under pressure diverges from the target. A free-form critique has no single number to climb; its feedback is qualitative and open-ended. Ship both: the structured verdict for routing, the free-form audit for content.
 
 ### Corollary (d): each verifier is framed adversarially
 
-A verifier told "check whether this is correct" drifts toward confirming — premise 1 reaches the verifier through its own instructions, even in a fresh context. State the job as finding errors, not evaluating correctness: the verifier has no loyalty to the work, and its goal is to break it. This is orthogonal to (b): adversarial posture applies per verifier, before any cross-verifier variation.
+A verifier told "check whether this is correct" drifts toward confirming — premise 1 (self-bias) reaches the verifier through its own instructions, even in a fresh context. State the job as finding errors, not evaluating correctness: the verifier has no loyalty to the work, and its goal is to break it. This is orthogonal to (b): adversarial posture applies per verifier, before any cross-verifier variation.
 
 ### Corollary (e): verification is a distinct stage, not a sub-step
 
-A worker that spawns its own verifier inside its own stage hasn't escaped premise 1. The worker chooses the framing, the inputs, and what to show — the self-bias reaches the verifier through the curation, even though the verifier's context is fresh. Verification must be a stage the orchestrator dispatches separately: inputs come from state (or from artifacts the worker wrote, not selected), framing comes from the stage doc, and the verdict flows back to the orchestrator, not to the worker. The worker never sees the verifier; the orchestrator, not the worker, routes on the verdict.
+A worker that spawns its own verifier inside its own stage hasn't escaped premise 1 (self-bias). The worker chooses the framing, the inputs, and what to show — the self-bias reaches the verifier through the curation, even though the verifier's context is fresh. Verification must be a stage the orchestrator dispatches separately: inputs come from state (or from artifacts the worker wrote, not selected), framing comes from the stage doc, and the verdict flows back to the orchestrator, not to the worker. The worker never sees the verifier; the orchestrator, not the worker, routes on the verdict.
 
 ---
 
 ## 5. Enforce load-bearing invariants redundantly
 
-Invariants drift across long runs (premise 3). Which rules are load-bearing is project-specific — the premises don't supply them; they only say such rules need redundant statement. For any rule whose silent breach corrupts downstream work in compounding ways — the **load-bearing** invariants — state it at multiple layers: CLAUDE.md, the referenced doc, and the agent's own definition. Any single layer can drift; three layers cannot drift in lockstep.
+Invariants drift across long runs (premise 3, coherence drift). Which rules are load-bearing is project-specific — the premises don't supply them; they only say such rules need redundant statement. For any rule whose silent breach corrupts downstream work in compounding ways — the **load-bearing** invariants — state it at multiple layers: CLAUDE.md, the referenced doc, and the agent's own definition. Any single layer can drift; three layers cannot drift in lockstep.
 
 ### Corollary (a): only load-bearing ones, because context is costly
 
@@ -190,13 +190,13 @@ Redundant enforcement costs tokens at every layer, and context is costly (§2). 
 The orchestrator is a program. Sequences, if/else, for-loops over agent lists, while-loops, early returns — ordinary control-flow shapes are fair game. The constraint is not on which shapes you can use; it's on the *predicate* that gates each branch, which is one of two kinds:
 
 - **Mechanical** — predicate evaluated by numeric rules over the state JSON: `if state.errors_plateau_for >= 2: escalate()`.
-- **LLM-judged** — predicate evaluated by the orchestrator itself reading an agent's output and deciding (capability 7). Input format is flexible — see corollary (c).
+- **LLM-judged** — predicate evaluated by the orchestrator itself reading an agent's output and deciding (capability 7, judges predicates). Input format is flexible — see corollary (c).
 
 Both are legitimate for routing — pick based on what the predicate is asking. Termination is the exception, as the corollaries make explicit.
 
 ### Corollary (a): runaway loops need a mechanical termination
 
-Any loop that could, in principle, run forever must have at least one mechanical branch on the termination path — a counter, a threshold, a strike limit. An LLM orchestrator will rationalize "one more try" indefinitely if termination depends only on its own judgment (premise 5). This is the one place LLM judgment alone is insufficient.
+Any loop that could, in principle, run forever must have at least one mechanical branch on the termination path — a counter, a threshold, a strike limit. An LLM orchestrator will rationalize "one more try" indefinitely if termination depends only on its own judgment (premise 5, path-of-least-resistance). This is the one place LLM judgment alone is insufficient.
 
 ### Corollary (b): termination triggers when marginal value stops
 
@@ -204,5 +204,5 @@ A counter caps pathological infinite loops, but the harder case is loops that ke
 
 ### Corollary (c): LLM-judged inputs don't need schemas
 
-Capability 6 means the orchestrator reads any text, and §2 says structure costs tokens without buying safety unless it earns its keep. An enumerated verdict (`PASS/FAIL`, `NOVEL/INCREMENTAL/KNOWN`) is cheap to route on, so it's the default on hot paths — structure that earns its keep. On rare or ambiguous branches, the orchestrator can read the full artifact and decide; no verdict token needed. Verdicts buy efficiency, not correctness.
+Capability 6 (reads-any-text) means the orchestrator reads any text, and §2 says structure costs tokens without buying safety unless it earns its keep. An enumerated verdict (`PASS/FAIL`, `NOVEL/INCREMENTAL/KNOWN`) is cheap to route on, so it's the default on hot paths — structure that earns its keep. On rare or ambiguous branches, the orchestrator can read the full artifact and decide; no verdict token needed. Verdicts buy efficiency, not correctness.
 

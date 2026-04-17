@@ -37,11 +37,10 @@ Each principle below can be read as a response to these properties (defending ag
 - §1 state ← 1, 2, 3
 - §1 control flow ← 1, 3, 5
 - §2 ← 2, 3, 9
-- §3 ← 1, 2, 4, 5, 8
+- §3 ← 1, 2, 3, 4, 5, 8
 - §4 ← 1, 4, 5, 7, 8
-- §5 ← 3
-- §6 ← 2, 5, 6, 7, 9
-- §7 ← 9
+- §5 ← 2, 5, 6, 7, 9
+- §6 ← 9
 
 ---
 
@@ -148,6 +147,18 @@ The orchestrator's loop becomes very short: read state, pick a vehicle, dispatch
 - Doing the work of a stage without spawning an agent for it, on the pretext of "just this once." The pretext always returns.
 - Loading a skill in the orchestrator for work that belongs in a subagent. Skills should land where the work happens, not in the always-on context.
 
+### Corollary: load-bearing invariants travel with the delegation
+
+Delegation moves work out of the orchestrator's context and into docs, skills, and agents. Each delegation target is a fresh surface where an invariant can be silently dropped (premise 3, coherence drift). Rules whose breach is **silent, cascading, and reachable from more than one surface** must be restated at each surface the work can enter from, not only at the dispatch site.
+
+In this architecture the surfaces are typically three:
+
+- **CLAUDE.md** catches biased launch prompts written by the orchestrator.
+- **The stage doc** catches improvised procedures when the top-level rule is honored but details drift.
+- **The agent definition** catches invocations outside the pipeline, where upstream steering never applied.
+
+The count is descriptive, not prescriptive: restate at each surface the rule can enter from in your own pipeline. §2's budget still applies, so most rules don't clear the bar; only the ones that do.
+
 ---
 
 ## 4. Verify, don't trust
@@ -178,23 +189,7 @@ A worker that spawns its own verifier inside its own stage hasn't escaped premis
 
 ---
 
-## 5. Enforce load-bearing invariants redundantly
-
-Invariants drift across long runs (premise 3, coherence drift). Which rules are load-bearing is project-specific. The premises don't supply them; they only say such rules need redundant statement. For any rule whose silent breach corrupts downstream work in compounding ways (the **load-bearing** invariants), state it at multiple layers: CLAUDE.md, the referenced doc, and the agent's own definition. Any single layer can drift; three layers cannot drift in lockstep.
-
-### Corollary (a): only load-bearing ones, because context is costly
-
-Redundant enforcement costs tokens at every layer, and context is costly (§2). Pay the cost only for rules where breach cascades: (i) across many downstream steps, (ii) silently rather than loudly, (iii) at more than one invocation surface. If fewer of these apply, fewer layers are enough. Most rules live in one place.
-
-### Corollary (b): why three layers specifically
-
-- **CLAUDE.md**: catches when the orchestrator writes a biased launch prompt.
-- **Referenced doc**: catches when the top-level rule is honored but the details are improvised.
-- **Agent definition**: catches when the agent is invoked outside the pipeline, or when upstream steering slipped through.
-
----
-
-## 6. Termination must be mechanical
+## 5. Termination must be mechanical
 
 The orchestrator is a program. Sequences, if/else, for-loops over agent lists, while-loops, early returns: ordinary control-flow shapes are fair game. The constraint is not on which shapes you can use; it's on the *predicate* that gates each branch, which is one of two kinds:
 
@@ -221,7 +216,7 @@ Capability 6 (reads-any-text) means the orchestrator reads any text, and §2 say
 
 ---
 
-## 7. Parallelize independent dispatches
+## 6. Parallelize independent dispatches
 
 When two dispatches have no data dependency, run them concurrently. Run quality is unchanged; wall-clock time falls. Traces to premise 9 (cheaper and faster is better).
 

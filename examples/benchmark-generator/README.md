@@ -10,8 +10,8 @@ First worked example in this repo. Translates the principles in `../../principle
 - **`state/pipeline_state.json`** is compact (routing state, not observability). (§1 corollary (e))
 - **Each stage dispatches a fresh-context subagent.** The orchestrator never does stage-level work itself. (§1 corollary (d), §3)
 - **Verification is its own stage** with two verifiers under different framings, both adversarially posed. The solver never sees the verifier. (§4)
-- **Termination is mechanical.** The loop ends when `problems_completed >= target` or when `stuck_count >= 3`. No exit depends only on LLM judgment. (§6)
-- **Load-bearing invariants are restated at three layers**: this CLAUDE.md, each stage doc, each verifier agent. (§5)
+- **Termination is mechanical.** The loop ends when `problems_completed >= target` or when `stuck_count >= 3`. No exit depends only on LLM judgment. (§5)
+- **Load-bearing invariants are restated at each surface the work enters from**: this CLAUDE.md, each stage doc, each verifier agent. (§3 delegation corollary)
 
 ## What is included
 

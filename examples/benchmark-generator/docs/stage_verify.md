@@ -36,7 +36,7 @@ Steps 2 and 3 are independent and may run in parallel.
 
 The orchestrator, not either verifier, routes on the pair. Neither verifier knows the other's verdict.
 
-## Invariants (restated here per §5)
+## Invariants (restated here per §3's delegation corollary)
 
 - Both verifiers are dispatched by the orchestrator, not by the solver (§4 corollary (e)). If the solver's stage ever launches a verifier, the invariant is broken. Report ERROR.
 - Both verifiers are adversarially framed (§4 corollary (d)), stated as "find errors," not "evaluate correctness."

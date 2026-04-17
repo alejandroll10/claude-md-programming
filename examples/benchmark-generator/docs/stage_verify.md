@@ -13,6 +13,8 @@ The two framings:
 
 Both are framed adversarially — the job is finding errors, not confirming correctness (§4 corollary (d)).
 
+Both verifiers run on the same underlying model. Framing-induced independence is the floor, not the ceiling (§4 corollary (b)): a same-model pair still shares model-level biases. Cross-model verification is the next step up when the budget allows.
+
 ## Procedure
 
 1. Read `state/pipeline_state.json`. Let `id = current_problem_id`.

@@ -103,3 +103,31 @@ Consequences:
 - Big-picture graph is the exception that proves the rule (see §1) — it's always-on because *every* step needs to know where it sits in the whole.
 
 "Just in case" content is the enemy.
+
+---
+
+## 3. Delegate
+
+The orchestrator is not the worker (§1), and context is costly (§2). Put together, these force delegation: the machinery to do the work should not live in the orchestrator's context. It lives somewhere else, loaded or spawned only when needed.
+
+Three vehicles for delegation, ordered by cost and isolation:
+
+- **Docs.** Content the orchestrator reads on demand. Cheapest. Zero isolation — the content lands in the current context. Use for: stage procedures, reference material, content the orchestrator itself needs to act on.
+- **Skills.** Self-contained modules (instructions, often with scripts or tools) that the harness loads on trigger. Lands in whoever is currently running — orchestrator or subagent. Use for: reusable capabilities that multiple workers need (math verification, domain formulas, standard workflows). Pairs especially well with agents — a fresh-context subagent loads only the skill it needs, without polluting the orchestrator.
+- **Agents.** Fresh-context sub-conversations with their own system prompt. Full isolation. Use for: work needing independent judgment (premise 1), long work that would pollute parent context (premise 2), parallel execution, or any place stochastic-error re-sampling matters (premise 4).
+
+### Pick the right vehicle
+
+| Situation | Vehicle |
+|---|---|
+| Content the orchestrator itself must read and act on | Doc |
+| Reusable capability multiple workers need | Skill |
+| Work requiring isolation, fresh perspective, or parallelism | Agent |
+
+The orchestrator's loop becomes very short: read state, pick a vehicle, dispatch, update state. It doesn't do the work itself — it decides where the work happens.
+
+### What this rules out
+
+- Inlining procedures, code, or long instructions into CLAUDE.md. The orchestrator's context is not a library.
+- Doing the work of a stage without spawning an agent for it, on the pretext of "just this once." The pretext always returns.
+- Loading a skill in the orchestrator for work that belongs in a subagent. Skills should land where the work happens, not in the always-on context.

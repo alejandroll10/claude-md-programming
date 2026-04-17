@@ -133,9 +133,9 @@ The orchestrator's loop becomes very short: read state, pick a vehicle, dispatch
 
 Workers defend their own output (premise 1) and prefer cheap paths (premise 5), so self-reports aren't evidence the work got done. And any verdict, from a worker or a verifier, is a noisy sample of the underlying quality (premise 4) — one draw isn't enough. Verify everything the orchestrator will route on — using other LLMs, not the same instance.
 
-### Corollary (a): at least two verifiers
+### Corollary (a): at least two verifiers, more when the signal is noisier
 
-A verifier's verdict is one noisy sample of the underlying quality (premise 4). Independent samples reduce variance and lower the odds that a correlated error goes unchecked; one verifier's report is evidence, not proof.
+A verifier's verdict is one noisy sample of the underlying quality (premise 4). Independent samples reduce variance and lower the odds that a correlated error goes unchecked; one verifier's report is evidence, not proof. Two is the floor — add more for steps where the signal is especially noisy, since variance falls roughly as 1/N.
 
 ### Corollary (b): distinct postures
 

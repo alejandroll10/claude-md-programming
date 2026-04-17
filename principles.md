@@ -112,5 +112,23 @@ The orchestrator's loop becomes very short: read state, pick a vehicle, dispatch
 
 ---
 
+## 4. Verify, don't trust
+
+Workers defend their own output (premise 1) and prefer cheap paths (premise 5), so self-reports are not evidence the work got done. Verify everything the orchestrator will route on — using other LLMs, not the same instance.
+
+### Corollary (a): at least two verifiers
+
+Stochastic error applies to verifiers too (premise 4). One verifier's report is evidence, not proof.
+
+### Corollary (b): distinct postures
+
+Two copies of the same verifier share their blind spots — the instructions force them there. Vary the frame (e.g. structured step-by-step re-derivation vs. skeptical-reader holistic pass) so the blind spots don't correlate.
+
+### Corollary (c): at least one free-form
+
+A numeric score or enumerated verdict is cheap to route on, but easy to game — the orchestrator starts optimizing for "make the score go up" rather than for the substance (premise 5). A free-form critique has no single number to climb; its feedback is qualitative and open-ended. Ship both: the structured verdict for routing, the free-form audit for content.
+
+---
+
 <!-- TODO: future principle on branch taxonomy — mechanical vs LLM-judged, verdicts-as-default on hot paths, runaway loops need at least one mechanical exit. Lifted out of §1 during restructure; belongs in its own section once we draft it. -->
 

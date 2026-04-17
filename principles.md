@@ -4,9 +4,9 @@
 
 This document is for **long-running autonomous systems** — pipelines where Claude is expected to work for hours or days with no human at the terminal. The design choices that follow make sense in that regime and may be overkill for short interactive sessions. In an autonomous system, every step must know what to do next without a human to ask; robustness compounds over the run length; and the cost of a silent failure is high because no one is watching.
 
-## Premises: four LLM failure modes
+## Premises: five LLM failure modes
 
-Every principle here is derived from one or more of four weaknesses of LLMs as a programming substrate. These aren't bugs that a better model will fix — they're properties of how autoregressive generation over a finite context window behaves, and they shape what "reliable" means in this regime.
+Every principle here is derived from one or more of five weaknesses of LLMs as a programming substrate. These aren't bugs that a better model will fix — they're properties of how autoregressive generation over a finite context window, trained to fulfill objectives, behaves. They shape what "reliable" means in this regime.
 
 1. **Self-bias.** An LLM that has produced context gets pulled toward defending and continuing it. It rationalizes its prior output instead of evaluating it freshly. *Consequence:* the same LLM instance cannot reliably grade its own work.
 
@@ -16,7 +16,9 @@ Every principle here is derived from one or more of four weaknesses of LLMs as a
 
 4. **Stochastic error.** Even on tasks the model can do, it fails on some fraction of attempts — a sign slip, an off-by-one, a dropped constraint, a misread token. The errors are noise from a sampling process, not a ceiling on capability. *Consequence:* a single pass is unreliable even from a capable agent. A different instance with the same model often catches the error, because the error roll is independent. This is what makes adversarial review and multi-pass verification load-bearing rather than decorative.
 
-Each principle below can be read as "given these four failure modes, do X." If a principle doesn't trace to at least one of them, it is decoration.
+5. **Path-of-least-resistance.** LLMs are trained to fulfill objectives, so when several paths satisfy the letter of an instruction they prefer the cheapest one — a shortcut, surface-level compliance, a premature "done." This shows up as specification gaming (technically fulfilling the ask while missing the intent), skipping available tools because they're unfamiliar, and declaring a task complete before the harder part is actually attempted. *Consequence:* two countermeasures, both needed. (a) **Detailed instructions** that spell out what counts as the work being done — the goal alone underspecifies the path. (b) **Independent verifiers** that measure whether the work got done, rather than trusting the agent's own self-report. The agent doing the work cannot be the agent judging whether the work is complete.
+
+Each principle below can be read as "given these five failure modes, do X." If a principle doesn't trace to at least one of them, it is decoration.
 
 ---
 

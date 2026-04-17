@@ -109,7 +109,7 @@ Three vehicles for delegation, ordered by cost and isolation:
 
 - **Docs.** Content the orchestrator reads on demand. Cheapest. Zero isolation — the content lands in the current context. Use for: stage procedures, reference material, content the orchestrator itself needs to act on. Stage docs specify the path, not just the goal — premise 5 fills underspecified paths with shortcuts.
 - **Skills.** Self-contained modules (instructions, often with scripts or tools) that the harness loads on trigger. Lands in whoever is currently running — orchestrator or subagent. Use for: reusable capabilities that multiple workers need (math verification, domain formulas, standard workflows). Pairs especially well with agents — a fresh-context subagent loads only the skill it needs, without polluting the orchestrator.
-- **Agents.** Fresh-context sub-conversations with their own system prompt. Full isolation. Use for: work needing independent judgment (premise 1), long work that would pollute parent context (premise 2), parallel execution, or any place stochastic-error re-sampling matters (premise 4).
+- **Agents.** Fresh-context sub-conversations with their own system prompt. Full isolation — capability 8 is what makes isolation real rather than rhetorical. Use for: work needing independent judgment (premise 1), long work that would pollute parent context (premise 2), parallel execution, or any place stochastic-error re-sampling matters (premise 4).
 
 ### Pick the right vehicle
 
@@ -131,7 +131,7 @@ The orchestrator's loop becomes very short: read state, pick a vehicle, dispatch
 
 ## 4. Verify, don't trust
 
-Workers defend their own output (premise 1) and prefer cheap paths (premise 5), so self-reports aren't evidence the work got done. And any verdict, from a worker or a verifier, is a noisy sample of the underlying quality (premise 4) — one draw isn't enough. Verify everything the orchestrator will route on — using other LLMs, not the same instance.
+Workers defend their own output (premise 1) and prefer cheap paths (premise 5), so self-reports aren't evidence the work got done. And any verdict, from a worker or a verifier, is a noisy sample of the underlying quality (premise 4) — one draw isn't enough. Verify everything the orchestrator will route on — using other LLMs (capability 7), not the same instance (capability 8).
 
 ### Corollary (a): at least two verifiers, more when the signal is noisier
 
@@ -143,7 +143,7 @@ The 1/N variance bound in (a) assumes independence. Two verifiers given identica
 
 ### Corollary (c): at least one free-form
 
-A numeric score or enumerated verdict is cheap to route on, but easy to game — the orchestrator starts optimizing for "make the score go up" rather than for the substance (premise 5). A free-form critique has no single number to climb; its feedback is qualitative and open-ended. Ship both: the structured verdict for routing, the free-form audit for content.
+A numeric score or enumerated verdict is cheap to route on, but easy to game. Two legs to the Goodhart argument: the score is a noisy proxy for latent quality (premise 4), and the model prefers the cheapest path to satisfying it (premise 5). Optimizing a noisy proxy under pressure diverges from the target. A free-form critique has no single number to climb; its feedback is qualitative and open-ended. Ship both: the structured verdict for routing, the free-form audit for content.
 
 ### Corollary (d): each verifier is framed adversarially
 
@@ -167,14 +167,14 @@ Redundant enforcement costs tokens at every layer, and context is costly (§2). 
 
 ---
 
-## 6. Control flow is mechanical or LLM-judged
+## 6. Exits must be mechanical
 
 The orchestrator is a program. Sequences, if/else, for-loops over agent lists, while-loops, early returns — ordinary control-flow shapes are fair game. The constraint is not on which shapes you can use; it's on the *predicate* that gates each branch, which is one of two kinds:
 
 - **Mechanical** — predicate evaluated by numeric rules over the state JSON: `if state.errors_plateau_for >= 2: escalate()`.
-- **LLM-judged** — predicate evaluated by the orchestrator itself reading an agent's output and deciding (§7).
+- **LLM-judged** — predicate evaluated by the orchestrator itself reading an agent's output and deciding (capability 7, §7).
 
-Both are legitimate. Pick based on what the predicate is asking.
+Both are legitimate for routing — pick based on what the predicate is asking. Termination is the exception, as the corollaries make explicit.
 
 ### Corollary (a): runaway loops need a mechanical exit
 

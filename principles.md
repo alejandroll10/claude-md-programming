@@ -88,6 +88,10 @@ Doing the work of a stage — analyzing the artifact, writing the forecast, revi
 
 Long autonomous runs also produce human-facing artifacts — logs, dashboards, commit messages, process records — so someone outside the loop can monitor, intervene, or learn from the run. This is observability, not state. The orchestrator never reads it to route. Corollary (a)'s freshness requirement doesn't apply; §2's compactness bar doesn't apply. Keep them in separate files with separate budgets: a stale dashboard is ugly, a stale `state.json` silently breaks the Markov property.
 
+### Corollary (f): establish environmental ground truth before the loop
+
+Some facts the pipeline depends on describe the *environment*, not the work — which data sources exist, which tools have credentials, which services are up. If each stage re-derives or silently assumes these, they drift (premise 3) and fill gaps with shortcuts (premise 5). Capture them once at pipeline entry in a reference artifact every stage reads. This is a third artifact class beyond routing state and observability: the pipeline consumes it, but the orchestrator doesn't transition on it. If the environment changes mid-run, update the artifact and commit the update — silent drift in ground truth is the worst kind, because every stage downstream inherits the stale assumption.
+
 ---
 
 ## 2. Context is costly

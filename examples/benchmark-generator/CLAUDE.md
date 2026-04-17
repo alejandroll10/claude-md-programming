@@ -36,6 +36,20 @@ Observability — one JSONL line per transition — is appended to `output/histo
 └────────────────────────────────────────────────┘
 ```
 
+Orchestrator loop (§1):
+
+```
+while state.status == "running":
+    state   = read("state/pipeline_state.json")
+    stage   = state.current_stage
+    doc     = read(f"docs/stage_{stage}.md")
+    verdict = dispatch(stage, doc, state)        # fresh-context subagent
+    state   = transition(state, verdict)         # per table below
+    write_atomic("state/pipeline_state.json", state)
+    append("output/history.jsonl", event)
+    commit(f"pipeline: {stage} → {verdict}")
+```
+
 Top-level transitions:
 
 | From    | Verdict  | Next                            | Notes                          |

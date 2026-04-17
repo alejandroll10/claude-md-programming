@@ -130,5 +130,21 @@ A numeric score or enumerated verdict is cheap to route on, but easy to game —
 
 ---
 
+## 5. Enforce load-bearing invariants redundantly
+
+Invariants drift across long runs (premise 3). Rules whose silent breach corrupts downstream work in compounding ways — the **load-bearing** invariants — get stated at multiple layers: CLAUDE.md, the referenced doc, and the agent's own definition. Any single layer can drift; three layers cannot drift in lockstep.
+
+### Corollary (a): only load-bearing ones, because context is costly
+
+Redundant enforcement costs tokens at every layer, and context is costly (§2). Pay the cost only for rules where breach cascades: (i) across many downstream steps, (ii) silently rather than loudly, (iii) at more than one invocation surface. If fewer of these apply, fewer layers are enough. Most rules live in one place.
+
+### Corollary (b): why three layers specifically
+
+- **CLAUDE.md** — catches when the orchestrator writes a biased launch prompt.
+- **Referenced doc** — catches when the top-level rule is honored but the details are improvised.
+- **Agent definition** — catches when the agent is invoked outside the pipeline, or when upstream steering slipped through.
+
+---
+
 <!-- TODO: future principle on branch taxonomy — mechanical vs LLM-judged, verdicts-as-default on hot paths, runaway loops need at least one mechanical exit. Lifted out of §1 during restructure; belongs in its own section once we draft it. -->
 

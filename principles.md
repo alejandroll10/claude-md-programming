@@ -1,8 +1,8 @@
 # Principles
 
-## Premises: three LLM failure modes
+## Premises: four LLM failure modes
 
-Every principle here is derived from one or more of three weaknesses of LLMs as a programming substrate. These aren't bugs that a better model will fix — they're properties of how autoregressive generation over a finite context window behaves, and they shape what "reliable" means in this regime.
+Every principle here is derived from one or more of four weaknesses of LLMs as a programming substrate. These aren't bugs that a better model will fix — they're properties of how autoregressive generation over a finite context window behaves, and they shape what "reliable" means in this regime.
 
 1. **Self-bias.** An LLM that has produced context gets pulled toward defending and continuing it. It rationalizes its prior output instead of evaluating it freshly. *Consequence:* the same LLM instance cannot reliably grade its own work.
 
@@ -10,7 +10,9 @@ Every principle here is derived from one or more of three weaknesses of LLMs as 
 
 3. **Coherence drift.** Across many steps, invariants get forgotten, overridden, or silently reinterpreted. Small local departures compound. *Consequence:* rules that must hold across a whole run need redundant enforcement, not a single statement.
 
-Each principle below can be read as "given these three failure modes, do X." If a principle doesn't trace to at least one of them, it is decoration.
+4. **Stochastic error.** Even on tasks the model can do, it fails on some fraction of attempts — a sign slip, an off-by-one, a dropped constraint, a misread token. The errors are noise from a sampling process, not a ceiling on capability. *Consequence:* a single pass is unreliable even from a capable agent. A different instance with the same model often catches the error, because the error roll is independent. This is what makes adversarial review and multi-pass verification load-bearing rather than decorative.
+
+Each principle below can be read as "given these four failure modes, do X." If a principle doesn't trace to at least one of them, it is decoration.
 
 ---
 

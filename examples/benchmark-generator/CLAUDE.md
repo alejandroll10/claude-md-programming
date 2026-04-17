@@ -1,4 +1,4 @@
-# CLAUDE.md — Benchmark Generator
+# CLAUDE.md: Benchmark Generator
 
 Autonomously produce `target` verified `(problem, solution, tests)` triples on a named topic. Runs unattended.
 
@@ -20,7 +20,7 @@ Shape:
 }
 ```
 
-Observability — one JSONL line per transition — is appended to `output/history.jsonl`, not stored in routing state (§1 corollary (e)). The orchestrator never reads it.
+Observability (one JSONL line per transition) is appended to `output/history.jsonl`, not stored in routing state (§1 corollary (e)). The orchestrator never reads it.
 
 ## Pipeline graph
 
@@ -64,7 +64,7 @@ Local routing (verdict space within each stage) lives in the stage doc.
 
 ## Load-bearing invariants
 
-Project-specific rules whose silent breach corrupts downstream work. Per §5, they are stated here, in the relevant stage doc, and in each agent definition — any one layer can drift, three cannot drift in lockstep.
+Project-specific rules whose silent breach corrupts downstream work. Per §5, they are stated here, in the relevant stage doc, and in each agent definition. Any one layer can drift, three cannot drift in lockstep.
 
 1. **Every accepted triple passes two independent verifiers under distinct framings.** One verifier is a noisy sample (premise 4, stochastic error); identical framings share blind spots (§4 corollaries (a), (b)).
 2. **Verifiers never see the solver's context.** Verification is a distinct stage dispatched by this orchestrator (§4 corollary (e)). The solver does not choose the verifier's framing.
@@ -80,9 +80,9 @@ Project-specific rules whose silent breach corrupts downstream work. Per §5, th
 
 Mechanical (§6). The loop ends when any of:
 
-- `problems_completed >= target` — set `status: "complete"`.
-- `stuck_count >= 3` — budget ceiling. Set `status: "stuck"`, write `output/stuck_report.md`, halt.
-- Last two REJECT reasons collide on failure class (same verifier, same issue category in its verdict) — delta-based (§6(b) corollary): the feedback isn't moving, so a third attempt is unlikely to. Set `status: "stuck"`, halt.
+- `problems_completed >= target`: set `status: "complete"`.
+- `stuck_count >= 3`: budget ceiling. Set `status: "stuck"`, write `output/stuck_report.md`, halt.
+- Last two REJECT reasons collide on failure class (same verifier, same issue category in its verdict), delta-based (§6(b) corollary): the feedback isn't moving, so a third attempt is unlikely to. Set `status: "stuck"`, halt.
 
 No termination path depends only on LLM judgment. The budget caps pathological loops; the delta check catches loops that keep executing while producing nothing.
 

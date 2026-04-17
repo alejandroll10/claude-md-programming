@@ -1,15 +1,15 @@
 # claude-md-programming
 
-A design pattern for building autonomous, multi-stage Claude Code pipelines. Not a framework, not a language — a small set of organizing principles for treating a repository's CLAUDE.md, subagents, skills, and state files as a coherent program.
+A design pattern for building autonomous, multi-stage Claude Code pipelines. Not a framework, not a language, but a small set of organizing principles for treating a repository's CLAUDE.md, subagents, skills, and state files as a coherent program.
 
 ## Scope
 
-Long-running, unattended pipelines — hours to days without a human at the terminal. Overkill for short interactive sessions.
+Long-running, unattended pipelines (hours to days without a human at the terminal). Overkill for short interactive sessions.
 
 ## Start here
 
-- [`principles.md`](principles.md) — the design pattern. Begin with the premises; every principle derives from at least one.
-- [`examples/benchmark-generator/`](examples/benchmark-generator/) — a worked example translating the principles into concrete CLAUDE.md, state, stage docs, and agent definitions.
+- [`principles.md`](principles.md): the design pattern. Begin with the premises; every principle derives from at least one.
+- [`examples/benchmark-generator/`](examples/benchmark-generator/): a worked example translating the principles into concrete CLAUDE.md, state, stage docs, and agent definitions.
 
 ## Status
 

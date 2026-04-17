@@ -16,12 +16,11 @@ Shape:
   "current_problem_id": null,
   "current_stage": "propose",
   "stuck_count": 0,
-  "status": "running",
-  "history": []
+  "status": "running"
 }
 ```
 
-`history` is append-only observability (§1 corollary (e)). The orchestrator does not route on it.
+Observability — one JSONL line per transition — is appended to `output/history.jsonl`, not stored in routing state (§1 corollary (e)). The orchestrator never reads it.
 
 ## Pipeline graph
 

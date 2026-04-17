@@ -5,6 +5,5 @@
   "current_problem_id": null,
   "current_stage": "propose",
   "stuck_count": 0,
-  "status": "not_started",
-  "history": []
+  "status": "not_started"
 }

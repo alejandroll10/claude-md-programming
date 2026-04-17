@@ -185,7 +185,7 @@ Redundant enforcement costs tokens at every layer, and context is costly (§2). 
 
 ---
 
-## 6. Exits must be mechanical
+## 6. Termination must be mechanical
 
 The orchestrator is a program. Sequences, if/else, for-loops over agent lists, while-loops, early returns — ordinary control-flow shapes are fair game. The constraint is not on which shapes you can use; it's on the *predicate* that gates each branch, which is one of two kinds:
 
@@ -194,13 +194,13 @@ The orchestrator is a program. Sequences, if/else, for-loops over agent lists, w
 
 Both are legitimate for routing — pick based on what the predicate is asking. Termination is the exception, as the corollaries make explicit.
 
-### Corollary (a): runaway loops need a mechanical exit
+### Corollary (a): runaway loops need a mechanical termination
 
-Any loop that could, in principle, run forever must have at least one mechanical branch on the exit path — a counter, a threshold, a strike limit. An LLM orchestrator will rationalize "one more try" indefinitely if the exit depends only on its own judgment (premise 5). This is the one place LLM judgment alone is insufficient.
+Any loop that could, in principle, run forever must have at least one mechanical branch on the termination path — a counter, a threshold, a strike limit. An LLM orchestrator will rationalize "one more try" indefinitely if termination depends only on its own judgment (premise 5). This is the one place LLM judgment alone is insufficient.
 
-### Corollary (b): exits trigger when marginal value stops
+### Corollary (b): termination triggers when marginal value stops
 
-A counter caps pathological infinite loops, but the harder case is loops that keep executing while producing nothing — a retry returning the same score, a revision with no new feedback. The mechanical exit should fire when the *next* iteration is unlikely to add value, not only when some absolute ceiling is hit. Two concrete forms: (i) delta-based — escalate when Δ(score, feedback-novelty) falls below a threshold; (ii) budget-based — cap retries at the count where marginal value historically saturates for that loop. Budget is the upfront approximation; delta is the runtime correction.
+A counter caps pathological infinite loops, but the harder case is loops that keep executing while producing nothing — a retry returning the same score, a revision with no new feedback. The mechanical termination should fire when the *next* iteration is unlikely to add value, not only when some absolute ceiling is hit. Two concrete forms: (i) delta-based — escalate when Δ(score, feedback-novelty) falls below a threshold; (ii) budget-based — cap retries at the count where marginal value historically saturates for that loop. Budget is the upfront approximation; delta is the runtime correction.
 
 ### Corollary (c): LLM-judged inputs don't need schemas
 

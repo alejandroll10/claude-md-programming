@@ -49,6 +49,12 @@ So the always-loaded CLAUDE.md pays the token cost of the **overall pipeline gra
 
 Local routing (this stage's verdict space, and which stage each verdict points to) lives in the stage doc. The high-level graph in CLAUDE.md points at the stages; the stages own their own outgoing edges.
 
+### Shared values belong in CLAUDE.md
+
+Control flow and state are not the only things every step needs. Values that must shape *every* agent's judgment — "prior work is sunk cost," "surprises are discoveries," "never inflate framing," "every trade needs a why-now" — earn their place in the always-loaded context. The orchestrator reads them and bakes them into the launch prompts it writes; the agent definition restates the ones that agent must embody (§5). CLAUDE.md is the upstream layer of that redundant enforcement, and the only one the orchestrator sees when deciding how to dispatch.
+
+Narrow category, same test as §5: only commitments whose silent breach corrupts downstream work across stages. Stage-specific conventions and operational tips don't qualify — they live in the stage doc.
+
 ### Corollary (a): CLAUDE.md is not a manual
 
 Stage-by-stage procedures, examples, and edge-case notes are not control flow. They belong in per-stage docs loaded on demand (see §3, Delegate). Inlining them bloats always-on context and triggers long-context degradation (premise 2).

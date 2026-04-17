@@ -22,24 +22,11 @@ Each principle below can be read as "given these five failure modes, do X." If a
 
 ---
 
-## 1. CLAUDE.md is the orchestrator — not a manual, and not a worker
+## 1. CLAUDE.md is the orchestrator
 
-The CLAUDE.md at the root of a project is always loaded into context. Treat it as the body of a program's main loop.
+The CLAUDE.md at the root of a project is always loaded into context. Its job is to hold the two things every step needs in order to proceed: **control flow** (where we are, what comes next, what to do on each verdict) and **state** — either inline or via a pointer to where state lives (typically a small JSON file).
 
-Two things it is **not**:
-
-- **Not a manual.** Don't write stage-by-stage procedures, examples, or edge-case notes into it "just in case." Those belong in per-stage docs loaded on demand.
-- **Not a worker.** The orchestrator does not do the work of the stages. It doesn't analyze the artifact, write the forecast, or review the proof. It dispatches to agents and reads their outputs. The moment the orchestrator starts producing stage-level content itself, its context fills with domain material and it loses the distance that makes routing reliable — the three LLM failure modes (self-bias, long-context degradation, coherence drift) re-enter through the front door.
-
-The orchestrator's job is small and structural: read the current state, load the one doc it needs for this step, dispatch the right work to an agent, read back a verdict or artifact, update state, repeat. Everything else — how to actually do a step, examples, rationale, edge cases — lives in a separate doc loaded on demand, and the *doing* happens inside fresh-context subagents.
-
-### The big-picture graph belongs in CLAUDE.md
-
-The orchestrator needs to know, at a glance, where it is in the whole pipeline. If knowing "what comes after stage N" requires reading stage N's doc to find out, every routing decision pays for an extra doc read — and the orchestrator can't reason about future stages at all without loading them.
-
-So the always-loaded CLAUDE.md pays the token cost of the **overall pipeline graph** — the stage list, the gates, the main loops, the escalation table. It does not pay the cost of each stage's procedure. The graph is cheap in tokens; procedures are not.
-
-What lives in stage docs is the *local* routing: this stage's verdict space, and which stage each verdict points to next. The high-level graph in CLAUDE.md points at the stages; the stages own their own outgoing edges.
+Nothing else — or as close to nothing else as possible. Everything that is not control flow and not state belongs somewhere cheaper: a per-stage doc, a skill, a subagent (see §3, Delegate).
 
 ### Pseudocode
 
@@ -48,38 +35,27 @@ while state.status == "running":
     stage   = state.current_stage
     doc     = read(f"docs/{stage}.md")        # loaded on demand, not upfront
     verdict = run_stage(doc, state)            # may dispatch agents, write files
-    state   = transition(state, verdict)       # mechanical: verdict → next stage
+    state   = transition(state, verdict)       # verdict → next stage
     commit(state)
 ```
 
-The CLAUDE.md contains the `while`, the shape of `state`, and the `transition` table. It does not contain the body of `run_stage` for every stage — those are the `docs/*.md` files.
+CLAUDE.md contains the `while`, the shape of `state`, the high-level pipeline graph, and the top-level transition table. It does not contain the body of `run_stage` for every stage — those live in `docs/*.md` and in subagent definitions.
 
-### Branches come in two flavors
+### The big-picture graph belongs in CLAUDE.md
 
-The `transition` step is a big `if/elif`. Two kinds of predicates live inside it:
+The orchestrator needs to know, at a glance, where it sits in the whole pipeline. If knowing "what comes after stage N" requires reading stage N's doc, every routing decision pays for an extra doc read — and the orchestrator can't reason about future stages at all without loading them.
 
-- **Mechanical** — evaluated by numeric rules over the state JSON:
-  `if state.errors_plateau_for >= 2: escalate()`
-- **LLM-judged** — evaluated by the orchestrator itself (which is an LLM) reading the agent's output. The orchestrator doesn't need a parseable boolean. It can read a full audit report and decide whether to advance, go back, or escalate.
+So the always-loaded CLAUDE.md pays the token cost of the **overall pipeline graph** — the stage list, the gates, the main loops, the escalation table. It does not pay the cost of each stage's procedure. The graph is cheap; procedures are not.
 
-Because the orchestrator is an LLM, `if` is not restricted to bools. It can route on free-form content. A classical `if verdict == "PASS"` is still useful — but as an **optimization**, not a requirement:
+Local routing (this stage's verdict space, and which stage each verdict points to) lives in the stage doc. The high-level graph in CLAUDE.md points at the stages; the stages own their own outgoing edges.
 
-- A short enumerated verdict (`PASS/FAIL`, `NOVEL/INCREMENTAL/KNOWN`) saves tokens: the orchestrator can match on it without re-reading the whole artifact.
-- Routing on a fixed token is more reliable than routing on re-interpreted prose.
-- The verdict keeps the orchestrator's context small — a Markov-friendly property.
+### Corollary (a): CLAUDE.md is not a manual
 
-But none of that is load-bearing. If an agent writes a long free-form audit with no summary line, the orchestrator can still read it and decide. Verdicts are for cheap, common paths; for rare or ambiguous ones, reading the body is fine.
+Stage-by-stage procedures, examples, and edge-case notes are not control flow. They belong in per-stage docs loaded on demand (see §3, Delegate). Inlining them bloats always-on context and triggers long-context degradation (premise 2).
 
-The discipline that keeps this a program rather than vibes:
+### Corollary (b): CLAUDE.md is not a worker
 
-1. **Prefer enumerated verdicts on hot paths.** When a branch is taken often, the summary token pays for itself in tokens and reliability. When it's taken rarely, the orchestrator can afford to read.
-2. **Every loop that could run forever needs at least one mechanical branch on the exit path** — a counter, a threshold, a strike limit. Otherwise the LLM orchestrator will rationalize another attempt indefinitely. This is the one place LLM judgment alone is not enough.
-
-### What this rules out
-
-- Putting stage-by-stage procedures inline in CLAUDE.md. They bloat always-on context and push the model toward long-context degradation.
-- "See how it's going and decide what to do" branches with no enumerated verdict set. That isn't a branch; it's a vibe.
-- Pure-LLM loops with no mechanical exit. Eventually the model talks itself into one more try.
+Doing the work of a stage — analyzing the artifact, writing the forecast, reviewing the proof — is not control flow. It belongs inside a fresh-context subagent dispatched by the orchestrator. The moment the orchestrator does stage-level work itself, its context fills with domain material and the five failure modes re-enter through the front door. The distance that makes routing reliable is gone.
 
 ---
 
@@ -133,3 +109,8 @@ The orchestrator's loop becomes very short: read state, pick a vehicle, dispatch
 - Inlining procedures, code, or long instructions into CLAUDE.md. The orchestrator's context is not a library.
 - Doing the work of a stage without spawning an agent for it, on the pretext of "just this once." The pretext always returns.
 - Loading a skill in the orchestrator for work that belongs in a subagent. Skills should land where the work happens, not in the always-on context.
+
+---
+
+<!-- TODO: future principle on branch taxonomy — mechanical vs LLM-judged, verdicts-as-default on hot paths, runaway loops need at least one mechanical exit. Lifted out of §1 during restructure; belongs in its own section once we draft it. -->
+

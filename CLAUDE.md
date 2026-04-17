@@ -4,6 +4,7 @@ This repo documents a design pattern. It is not the pattern's test harness.
 
 ## How we work here
 
+- **Clear and succinct.** Every sentence earns its place. Prefer one tight claim with a one-line reason over three paragraphs of hedging. If a principle can be stated in one sentence, it should be. Derive corollaries rather than listing co-equal sub-rules — fewer things to remember, and the derivation shows the logic.
 - **Start small, expand slowly.** Short docs are the point. A principle that needs a page of justification probably isn't a principle yet.
 - **No specific examples from private projects.** The patterns were distilled from private work. Illustrations in this repo must be generic or synthetic.
 - **Edit over addition.** Prefer tightening an existing doc to spawning a new one. New files need a clear reason.

@@ -146,5 +146,30 @@ Redundant enforcement costs tokens at every layer, and context is costly (§2). 
 
 ---
 
-<!-- TODO: future principle on branch taxonomy — mechanical vs LLM-judged, verdicts-as-default on hot paths, runaway loops need at least one mechanical exit. Lifted out of §1 during restructure; belongs in its own section once we draft it. -->
+## 6. Control flow is mechanical or LLM-judged
+
+Every branch in the orchestrator's control flow is one of two kinds:
+
+- **Mechanical** — predicate evaluated by numeric rules over the state JSON: `if state.errors_plateau_for >= 2: escalate()`.
+- **LLM-judged** — predicate evaluated by the orchestrator itself reading an agent's output and deciding (§7).
+
+Both are legitimate. Pick based on what the predicate is asking.
+
+### Corollary: runaway loops need a mechanical exit
+
+Any loop that could, in principle, run forever must have at least one mechanical branch on the exit path — a counter, a threshold, a strike limit. An LLM orchestrator will rationalize "one more try" indefinitely if the exit depends only on its own judgment (premise 5). This is the one place LLM judgment alone is insufficient.
+
+---
+
+## 7. LLMs read any text
+
+The orchestrator and the subagents are LLMs. They read prose, tables, markdown, JSON, mixed formats — whatever the upstream writer emits — and make sense of it. There is no structural requirement for parseable tokens, fixed schemas, or strict output formats between components.
+
+### Corollary (a): coverage contracts over schemas
+
+When the consumer is another LLM, specify *what information* must be present, not its exact shape. The consumer finds it in prose. Forcing JSON between LLMs costs expressiveness without buying safety.
+
+### Corollary (b): enumerated verdicts are an optimization, not a requirement
+
+An enumerated verdict (`PASS/FAIL`, `NOVEL/INCREMENTAL/KNOWN`) is cheap to route on (§6) and reliable, so it's the default on hot paths. But on rare or ambiguous branches, the orchestrator can read the full artifact and decide — no verdict token needed. Verdicts buy efficiency; they don't buy correctness.
 

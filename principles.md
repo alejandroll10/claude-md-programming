@@ -157,7 +157,7 @@ A verifier told "check whether this is correct" drifts toward confirming — pre
 
 ## 5. Enforce load-bearing invariants redundantly
 
-Invariants drift across long runs (premise 3). Rules whose silent breach corrupts downstream work in compounding ways — the **load-bearing** invariants — get stated at multiple layers: CLAUDE.md, the referenced doc, and the agent's own definition. Any single layer can drift; three layers cannot drift in lockstep.
+Invariants drift across long runs (premise 3). Which rules are load-bearing is project-specific — the premises don't supply them; they only say such rules need redundant statement. For any rule whose silent breach corrupts downstream work in compounding ways — the **load-bearing** invariants — state it at multiple layers: CLAUDE.md, the referenced doc, and the agent's own definition. Any single layer can drift; three layers cannot drift in lockstep.
 
 ### Corollary (a): only load-bearing ones, because context is costly
 

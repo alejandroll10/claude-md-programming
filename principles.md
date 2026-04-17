@@ -66,6 +66,8 @@ CLAUDE.md contains the `while`, the shape of `state`, the high-level pipeline gr
 
 If state is the sole carrier of history, a stale file silently breaks the Markov property — the "current" inputs a stage reads may be leftovers from a prior run. Especially load-bearing across session boundaries: a crashed-then-resumed run finds previous outputs still sitting in place and will happily consume them as this run's work. Verify intermediate inputs are current — mtime against pipeline-start, or an explicit freshness marker — before consuming.
 
+Each transition must also be written atomically and durably before the next begins. Batching multiple logical transitions into one write leaves the resume point ambiguous after a crash. Git commits, write-ahead logs, and append-only journals all qualify; the principle is the atomicity, not the tool.
+
 ### Corollary (b): the big-picture graph lives here
 
 The orchestrator needs to know, at a glance, where it sits in the whole pipeline. If knowing "what comes after stage N" requires reading stage N's doc, every routing decision pays for an extra doc read — and the orchestrator can't reason about future stages at all without loading them.

@@ -128,6 +128,10 @@ Two copies of the same verifier share their blind spots — the instructions for
 
 A numeric score or enumerated verdict is cheap to route on, but easy to game — the orchestrator starts optimizing for "make the score go up" rather than for the substance (premise 5). A free-form critique has no single number to climb; its feedback is qualitative and open-ended. Ship both: the structured verdict for routing, the free-form audit for content.
 
+### Corollary (d): each verifier is framed adversarially
+
+A verifier told "check whether this is correct" drifts toward confirming — premise 1 reaches the verifier through its own instructions, even in a fresh context. State the job as finding errors, not evaluating correctness: the verifier has no loyalty to the work, and its goal is to break it. This is orthogonal to (b): adversarial posture applies per verifier, before any cross-verifier variation.
+
 ---
 
 ## 5. Enforce load-bearing invariants redundantly

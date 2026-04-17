@@ -131,11 +131,11 @@ The orchestrator's loop becomes very short: read state, pick a vehicle, dispatch
 
 ## 4. Verify, don't trust
 
-Workers defend their own output (premise 1) and prefer cheap paths (premise 5), so self-reports are not evidence the work got done. Verify everything the orchestrator will route on — using other LLMs, not the same instance.
+Workers defend their own output (premise 1) and prefer cheap paths (premise 5), so self-reports aren't evidence the work got done. And any verdict, from a worker or a verifier, is a noisy sample of the underlying quality (premise 4) — one draw isn't enough. Verify everything the orchestrator will route on — using other LLMs, not the same instance.
 
 ### Corollary (a): at least two verifiers
 
-Stochastic error applies to verifiers too (premise 4). One verifier's report is evidence, not proof.
+A verifier's verdict is one noisy sample of the underlying quality (premise 4). Independent samples reduce variance and lower the odds that a correlated error goes unchecked; one verifier's report is evidence, not proof.
 
 ### Corollary (b): distinct postures
 

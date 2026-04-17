@@ -163,6 +163,10 @@ A numeric score or enumerated verdict is cheap to route on, but easy to game. Tw
 
 A verifier told "check whether this is correct" drifts toward confirming — premise 1 reaches the verifier through its own instructions, even in a fresh context. State the job as finding errors, not evaluating correctness: the verifier has no loyalty to the work, and its goal is to break it. This is orthogonal to (b): adversarial posture applies per verifier, before any cross-verifier variation.
 
+### Corollary (e): verification is a distinct stage, not a sub-step
+
+A worker that spawns its own verifier inside its own stage hasn't escaped premise 1. The worker chooses the framing, the inputs, and what to show — the self-bias reaches the verifier through the curation, even though the verifier's context is fresh. Verification must be a stage the orchestrator dispatches separately: inputs come from state (or from artifacts the worker wrote, not selected), framing comes from the stage doc, and the verdict flows back to the orchestrator, not to the worker. The worker never sees the verifier; the orchestrator, not the worker, routes on the verdict.
+
 ---
 
 ## 5. Enforce load-bearing invariants redundantly

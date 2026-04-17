@@ -1,5 +1,19 @@
 # Principles
 
+## Premises: three LLM failure modes
+
+Every principle here is derived from one or more of three weaknesses of LLMs as a programming substrate. These aren't bugs that a better model will fix — they're properties of how autoregressive generation over a finite context window behaves, and they shape what "reliable" means in this regime.
+
+1. **Self-bias.** An LLM that has produced context gets pulled toward defending and continuing it. It rationalizes its prior output instead of evaluating it freshly. *Consequence:* the same LLM instance cannot reliably grade its own work.
+
+2. **Long-context degradation.** As context grows, recall and reasoning quality degrade. The model misses details in the middle of long inputs, forgets instructions stated at the top, and conflates similar items. *Consequence:* anything the model doesn't strictly need, hurts.
+
+3. **Coherence drift.** Across many steps, invariants get forgotten, overridden, or silently reinterpreted. Small local departures compound. *Consequence:* rules that must hold across a whole run need redundant enforcement, not a single statement.
+
+Each principle below can be read as "given these three failure modes, do X." If a principle doesn't trace to at least one of them, it is decoration.
+
+---
+
 ## 1. CLAUDE.md is the orchestrator — not a manual, and not a worker
 
 The CLAUDE.md at the root of a project is always loaded into context. Treat it as the body of a program's main loop.

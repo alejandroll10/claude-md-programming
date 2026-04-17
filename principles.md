@@ -78,3 +78,28 @@ The discipline that keeps this a program rather than vibes:
 - Putting stage-by-stage procedures inline in CLAUDE.md. They bloat always-on context and push the model toward long-context degradation.
 - "See how it's going and decide what to do" branches with no enumerated verdict set. That isn't a branch; it's a vibe.
 - Pure-LLM loops with no mechanical exit. Eventually the model talks itself into one more try.
+
+---
+
+## 2. Context is costly
+
+Every token in context pays three separate costs:
+
+- **Attention.** Long context degrades recall and reasoning (premise 2). The effect shows up well below the nominal context limit.
+- **Tokens.** Every step pays to generate against the full loaded context. Over thousands of steps, it adds up to real money and real latency.
+- **Drift.** More context = more surface area for invariant drift (premise 3). Irrelevant detail makes it easier for the model to rationalize ignoring a rule.
+
+This turns CLAUDE.md programming from "write what you want" into a **budget problem**. Every always-loaded byte and every token passed to a subagent is evaluated on:
+
+1. **Is this load-bearing for *this* step?** If not, it belongs in a deferred doc, not the prompt.
+2. **Is this load-bearing for *every* step?** If yes, it earns a place in CLAUDE.md. If only some, it lives in the relevant stage doc.
+3. **Will this still be needed on step 1000?** Things that only mattered early should get compacted out or replaced by a summary in state.
+
+Consequences:
+
+- CLAUDE.md stays small by default. Additions must earn their keep.
+- Agents receive minimal inputs — file **paths** rather than file bodies, when the agent can fetch for itself.
+- State is compact. Running details get summarized; raw transcripts don't live in the state JSON.
+- Big-picture graph is the exception that proves the rule (see §1) — it's always-on because *every* step needs to know where it sits in the whole.
+
+"Just in case" content is the enemy.

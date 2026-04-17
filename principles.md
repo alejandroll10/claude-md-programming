@@ -1,5 +1,9 @@
 # Principles
 
+## Scope
+
+This document is for **long-running autonomous systems** — pipelines where Claude is expected to work for hours or days with no human at the terminal. The design choices that follow make sense in that regime and may be overkill for short interactive sessions. In an autonomous system, every step must know what to do next without a human to ask; robustness compounds over the run length; and the cost of a silent failure is high because no one is watching.
+
 ## Premises: four LLM failure modes
 
 Every principle here is derived from one or more of four weaknesses of LLMs as a programming substrate. These aren't bugs that a better model will fix — they're properties of how autoregressive generation over a finite context window behaves, and they shape what "reliable" means in this regime.
@@ -26,6 +30,14 @@ Two things it is **not**:
 - **Not a worker.** The orchestrator does not do the work of the stages. It doesn't analyze the artifact, write the forecast, or review the proof. It dispatches to agents and reads their outputs. The moment the orchestrator starts producing stage-level content itself, its context fills with domain material and it loses the distance that makes routing reliable — the three LLM failure modes (self-bias, long-context degradation, coherence drift) re-enter through the front door.
 
 The orchestrator's job is small and structural: read the current state, load the one doc it needs for this step, dispatch the right work to an agent, read back a verdict or artifact, update state, repeat. Everything else — how to actually do a step, examples, rationale, edge cases — lives in a separate doc loaded on demand, and the *doing* happens inside fresh-context subagents.
+
+### The big-picture graph belongs in CLAUDE.md
+
+The orchestrator needs to know, at a glance, where it is in the whole pipeline. If knowing "what comes after stage N" requires reading stage N's doc to find out, every routing decision pays for an extra doc read — and the orchestrator can't reason about future stages at all without loading them.
+
+So the always-loaded CLAUDE.md pays the token cost of the **overall pipeline graph** — the stage list, the gates, the main loops, the escalation table. It does not pay the cost of each stage's procedure. The graph is cheap in tokens; procedures are not.
+
+What lives in stage docs is the *local* routing: this stage's verdict space, and which stage each verdict points to next. The high-level graph in CLAUDE.md points at the stages; the stages own their own outgoing edges.
 
 ### Pseudocode
 

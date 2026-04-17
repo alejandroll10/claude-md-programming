@@ -9,3 +9,4 @@ This repo documents a design pattern. It is not the pattern's test harness.
 - **Edit over addition.** Prefer tightening an existing doc to spawning a new one. New files need a clear reason.
 - **No tooling yet.** No CLI, no scaffolding, no framework. Documentation only until the vocabulary is stable.
 - **Commit per change.** Small commits, readable diffs.
+- **Push after every commit.** Repo is private for now, so push aggressively — `git push` immediately follows `git commit`. No batching.

@@ -162,7 +162,7 @@ Redundant enforcement costs tokens at every layer, and context is costly (§2). 
 
 ## 6. Control flow is mechanical or LLM-judged
 
-The orchestrator is a program, not a switch statement. Sequences, if/else, for-loops over agent lists, while-loops, early returns — ordinary control-flow shapes are fair game. The constraint is not on which shapes you can use; it's on the *predicate* that gates each branch, which is one of two kinds:
+The orchestrator is a program. Sequences, if/else, for-loops over agent lists, while-loops, early returns — ordinary control-flow shapes are fair game. The constraint is not on which shapes you can use; it's on the *predicate* that gates each branch, which is one of two kinds:
 
 - **Mechanical** — predicate evaluated by numeric rules over the state JSON: `if state.errors_plateau_for >= 2: escalate()`.
 - **LLM-judged** — predicate evaluated by the orchestrator itself reading an agent's output and deciding (§7).

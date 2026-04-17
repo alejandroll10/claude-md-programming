@@ -36,8 +36,7 @@ Each principle below can be read as a response to these properties — defending
 - §3 ← 1, 2, 4, 5, 8
 - §4 ← 1, 4, 5, 7, 8
 - §5 ← 3
-- §6 ← 5, 7
-- §7 ← 2, 6
+- §6 ← 2, 5, 6, 7
 
 ---
 
@@ -181,7 +180,7 @@ Redundant enforcement costs tokens at every layer, and context is costly (§2). 
 The orchestrator is a program. Sequences, if/else, for-loops over agent lists, while-loops, early returns — ordinary control-flow shapes are fair game. The constraint is not on which shapes you can use; it's on the *predicate* that gates each branch, which is one of two kinds:
 
 - **Mechanical** — predicate evaluated by numeric rules over the state JSON: `if state.errors_plateau_for >= 2: escalate()`.
-- **LLM-judged** — predicate evaluated by the orchestrator itself reading an agent's output and deciding (capability 7, §7).
+- **LLM-judged** — predicate evaluated by the orchestrator itself reading an agent's output and deciding (capability 7). Input format is flexible — see corollary (c).
 
 Both are legitimate for routing — pick based on what the predicate is asking. Termination is the exception, as the corollaries make explicit.
 
@@ -193,13 +192,7 @@ Any loop that could, in principle, run forever must have at least one mechanical
 
 A counter caps pathological infinite loops, but the harder case is loops that keep executing while producing nothing — a retry returning the same score, a revision with no new feedback. The mechanical exit should fire when the *next* iteration is unlikely to add value, not only when some absolute ceiling is hit. Two concrete forms: (i) delta-based — escalate when Δ(score, feedback-novelty) falls below a threshold; (ii) budget-based — cap retries at the count where marginal value historically saturates for that loop. Budget is the upfront approximation; delta is the runtime correction.
 
----
+### Corollary (c): LLM-judged inputs don't need schemas
 
-## 7. Contracts between LLMs are semantic, not structural
-
-Given capability 6, specify *what information* must appear between components, not its exact shape. The consumer finds it in prose. Forcing JSON between LLMs costs expressiveness without buying safety.
-
-### Corollary (a): enumerated verdicts are an optimization, not a requirement
-
-An enumerated verdict (`PASS/FAIL`, `NOVEL/INCREMENTAL/KNOWN`) is cheap to route on (§6) and reliable, so it's the default on hot paths. But on rare or ambiguous branches, the orchestrator can read the full artifact and decide — no verdict token needed. Verdicts buy efficiency; they don't buy correctness.
+Capability 6 means the orchestrator reads any text, and §2 says structure costs tokens without buying safety unless it earns its keep. An enumerated verdict (`PASS/FAIL`, `NOVEL/INCREMENTAL/KNOWN`) is cheap to route on, so it's the default on hot paths — structure that earns its keep. On rare or ambiguous branches, the orchestrator can read the full artifact and decide; no verdict token needed. Verdicts buy efficiency, not correctness.
 

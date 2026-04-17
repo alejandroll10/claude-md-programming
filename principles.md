@@ -4,9 +4,9 @@
 
 This document is for **long-running autonomous systems** — pipelines where Claude is expected to work for hours or days with no human at the terminal. The design choices that follow make sense in that regime and may be overkill for short interactive sessions. In an autonomous system, every step must know what to do next without a human to ask; robustness compounds over the run length; and the cost of a silent failure is high because no one is watching.
 
-## Premises: LLM characteristics
+## Premises
 
-Every principle here is derived from properties of LLMs as a programming substrate — weaknesses that shape what reliable looks like, and capabilities that make the whole approach possible. These aren't bugs a better model will fix or features that will disappear; they're structural to how autoregressive generation over a finite context window, trained to fulfill objectives, behaves.
+Every principle here is derived from structural properties — LLM weaknesses and capabilities that come from the substrate, and properties of the outer development loop in which pipelines are built and tuned. These aren't bugs a better model will fix or circumstances that will change.
 
 ### Weaknesses
 
@@ -28,7 +28,11 @@ Every principle here is derived from properties of LLMs as a programming substra
 
 8. **Fresh instances sample independently.** Two calls with different prompts and no shared context sample errors independently — the flip side of premise 4 (stochastic error). *Consequence:* spawning a new subagent is a real reset, and multi-verifier checks aren't theater.
 
-Each principle below can be read as a response to these properties — defending against a weakness, or relying on a capability. If a principle doesn't trace to at least one, it's decoration. The mapping:
+### Development loop
+
+9. **Pipelines are iterated.** A pipeline is itself a tuned artifact — developed, debugged, and refined across many runs by a human or meta-system in the outer loop. *Consequence:* wall-clock time per run is load-bearing. A run that halves its duration doubles the rate at which the pipeline can be improved.
+
+Each principle below can be read as a response to these properties — defending against a weakness, leaning on a capability, or respecting the iteration loop. If a principle doesn't trace to at least one, it's decoration. The mapping:
 
 - §1 state ← 1, 2, 3
 - §1 control flow ← 1, 3, 5
@@ -37,6 +41,7 @@ Each principle below can be read as a response to these properties — defending
 - §4 ← 1, 4, 5, 7, 8
 - §5 ← 3
 - §6 ← 2, 5, 6, 7
+- §7 ← 9
 
 ---
 
@@ -205,4 +210,12 @@ A counter caps pathological infinite loops, but the harder case is loops that ke
 ### Corollary (c): LLM-judged inputs don't need schemas
 
 Capability 6 (reads-any-text) means the orchestrator reads any text, and §2 says structure costs tokens without buying safety unless it earns its keep. An enumerated verdict (`PASS/FAIL`, `NOVEL/INCREMENTAL/KNOWN`) is cheap to route on, so it's the default on hot paths — structure that earns its keep. On rare or ambiguous branches, the orchestrator can read the full artifact and decide; no verdict token needed. Verdicts buy efficiency, not correctness.
+
+---
+
+## 7. Parallelize independent dispatches
+
+When two dispatches have no data dependency, run them concurrently. Run quality is unchanged; wall-clock time falls. This is a cost concern, not a reliability one, and traces to premise 9 (pipelines are iterated) — fewer hours per run means more runs per tuning cycle.
+
+Constraint: parallelism is in dispatch, not in state mutation. Parallel branches write distinct keys, or the orchestrator gathers writes after both return — concurrent writes to the same field race.
 

@@ -137,9 +137,9 @@ Workers defend their own output (premise 1) and prefer cheap paths (premise 5), 
 
 A verifier's verdict is one noisy sample of the underlying quality (premise 4). Independent samples reduce variance and lower the odds that a correlated error goes unchecked; one verifier's report is evidence, not proof. Two is the floor — add more for steps where the signal is especially noisy, since variance falls roughly as 1/N.
 
-### Corollary (b): distinct postures
+### Corollary (b): distinct framings
 
-Two copies of the same verifier share their blind spots — the instructions force them there. Vary the frame (e.g. structured step-by-step re-derivation vs. skeptical-reader holistic pass) so the blind spots don't correlate.
+The 1/N variance bound in (a) assumes independence. Two verifiers given identical instructions aren't independent — they share the blind spots the instructions force them into. Vary the framing: different postures (structured step-by-step re-derivation vs. skeptical-reader holistic pass), different phrasings of the question, different rubrics on the same target. The less the instructions overlap, the closer to independent the samples get, and the more each additional verifier actually buys.
 
 ### Corollary (c): at least one free-form
 

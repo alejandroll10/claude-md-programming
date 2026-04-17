@@ -86,11 +86,7 @@ Doing the work of a stage — analyzing the artifact, writing the forecast, revi
 
 ## 2. Context is costly
 
-Every token in context pays three separate costs:
-
-- **Attention.** Long context degrades recall and reasoning (premise 2). The effect shows up well below the nominal context limit.
-- **Tokens.** Every step pays to generate against the full loaded context. Over thousands of steps, it adds up to real money and real latency.
-- **Drift.** More context = more surface area for invariant drift (premise 3). Irrelevant detail makes it easier for the model to rationalize ignoring a rule.
+Every always-loaded byte is a bet that its value exceeds its cost — and the cost isn't linear. Tokens scale linearly with length (dollars, latency), but attention (premise 2) and drift (premise 3) degrade the reliability of *everything already loaded*. Adding a marginal line taxes every other line's recall and every other invariant's hold. That convexity is why "earns its keep" has to be strict: the break-even bar rises as the doc grows.
 
 This turns CLAUDE.md programming from "write what you want" into a **budget problem**. Every always-loaded byte and every token passed to a subagent is evaluated on:
 

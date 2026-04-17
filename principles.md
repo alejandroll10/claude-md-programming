@@ -89,6 +89,8 @@ Stage-by-stage procedures, examples, and edge-case notes are not control flow. T
 
 Doing the work of a stage — analyzing the artifact, writing the forecast, reviewing the proof — is not control flow. It belongs inside a fresh-context subagent dispatched by the orchestrator. The moment the orchestrator does stage-level work itself, its context fills with domain material and the five failure modes re-enter through the front door. The distance that makes routing reliable is gone.
 
+This separation is enforced by discipline, not structure: the orchestrator is itself an LLM and can always reach for stage-level work if the doc doesn't forbid it. State the boundary explicitly, and route stage work outward even when "just reading one file" looks cheaper than spawning an agent.
+
 ### Corollary (e): routing state is not observability
 
 Long autonomous runs also produce human-facing artifacts — logs, dashboards, commit messages, process records — so someone outside the loop can monitor, intervene, or learn from the run. This is observability, not state. The orchestrator never reads it to route. Corollary (a)'s freshness requirement doesn't apply; §2's compactness bar doesn't apply. Keep them in separate files with separate budgets: a stale dashboard is ugly, a stale `state.json` silently breaks the Markov property.

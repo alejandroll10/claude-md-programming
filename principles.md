@@ -1,10 +1,15 @@
 # Principles
 
-## 1. CLAUDE.md is the orchestrator, not a manual
+## 1. CLAUDE.md is the orchestrator — not a manual, and not a worker
 
-The CLAUDE.md at the root of a project is always loaded into context. Treat it as the body of a program's main loop — not as a manual you write things into "just in case."
+The CLAUDE.md at the root of a project is always loaded into context. Treat it as the body of a program's main loop.
 
-The orchestrator's job is small: read the current state, load the one doc it needs for this step, dispatch the right work, update state, repeat. Everything else — how to actually do a step, examples, rationale, edge cases — lives in a separate doc loaded on demand.
+Two things it is **not**:
+
+- **Not a manual.** Don't write stage-by-stage procedures, examples, or edge-case notes into it "just in case." Those belong in per-stage docs loaded on demand.
+- **Not a worker.** The orchestrator does not do the work of the stages. It doesn't analyze the artifact, write the forecast, or review the proof. It dispatches to agents and reads their outputs. The moment the orchestrator starts producing stage-level content itself, its context fills with domain material and it loses the distance that makes routing reliable — the three LLM failure modes (self-bias, long-context degradation, coherence drift) re-enter through the front door.
+
+The orchestrator's job is small and structural: read the current state, load the one doc it needs for this step, dispatch the right work to an agent, read back a verdict or artifact, update state, repeat. Everything else — how to actually do a step, examples, rationale, edge cases — lives in a separate doc loaded on demand, and the *doing* happens inside fresh-context subagents.
 
 ### Pseudocode
 

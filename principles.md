@@ -169,9 +169,13 @@ Every branch in the orchestrator's control flow is one of two kinds:
 
 Both are legitimate. Pick based on what the predicate is asking.
 
-### Corollary: runaway loops need a mechanical exit
+### Corollary (a): runaway loops need a mechanical exit
 
 Any loop that could, in principle, run forever must have at least one mechanical branch on the exit path — a counter, a threshold, a strike limit. An LLM orchestrator will rationalize "one more try" indefinitely if the exit depends only on its own judgment (premise 5). This is the one place LLM judgment alone is insufficient.
+
+### Corollary (b): exits trigger when marginal value stops
+
+A counter caps pathological infinite loops, but the harder case is loops that keep executing while producing nothing — a retry returning the same score, a revision with no new feedback. The mechanical exit should fire when the *next* iteration is unlikely to add value, not only when some absolute ceiling is hit. Two concrete forms: (i) delta-based — escalate when Δ(score, feedback-novelty) falls below a threshold; (ii) budget-based — cap retries at the count where marginal value historically saturates for that loop. Budget is the upfront approximation; delta is the runtime correction.
 
 ---
 

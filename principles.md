@@ -4,9 +4,11 @@
 
 This document is for **long-running autonomous systems** — pipelines where Claude is expected to work for hours or days with no human at the terminal. The design choices that follow make sense in that regime and may be overkill for short interactive sessions. In an autonomous system, every step must know what to do next without a human to ask; robustness compounds over the run length; and the cost of a silent failure is high because no one is watching.
 
-## Premises: five LLM failure modes
+## Premises: LLM characteristics
 
-Every principle here is derived from one or more of five weaknesses of LLMs as a programming substrate. These aren't bugs that a better model will fix — they're properties of how autoregressive generation over a finite context window, trained to fulfill objectives, behaves. They shape what "reliable" means in this regime.
+Every principle here is derived from properties of LLMs as a programming substrate — weaknesses that shape what reliable looks like, and capabilities that make the whole approach possible. These aren't bugs a better model will fix or features that will disappear; they're structural to how autoregressive generation over a finite context window, trained to fulfill objectives, behaves.
+
+### Weaknesses
 
 1. **Self-bias.** An LLM that has produced context gets pulled toward defending and continuing it. It rationalizes its prior output instead of evaluating it freshly. *Consequence:* the same LLM instance cannot reliably grade its own work.
 
@@ -18,7 +20,15 @@ Every principle here is derived from one or more of five weaknesses of LLMs as a
 
 5. **Path-of-least-resistance.** LLMs are trained to fulfill objectives, so when several paths satisfy the letter of an instruction they prefer the cheapest one — a shortcut, surface-level compliance, a premature "done." This shows up as specification gaming (technically fulfilling the ask while missing the intent), skipping available tools because they're unfamiliar, and declaring a task complete before the harder part is actually attempted. *Consequence:* self-reports aren't evidence. If the path isn't specified explicitly and checked externally, the model fills the gap with shortcuts.
 
-Each principle below can be read as "given these five failure modes, do X." If a principle doesn't trace to at least one of them, it is decoration.
+### Capabilities
+
+6. **Reads any text.** An LLM makes sense of prose, tables, markdown, JSON, mixed formats — whatever the upstream writer emits. *Consequence:* contracts between components can specify what information must appear, not its exact shape.
+
+7. **Judges open-ended predicates.** Given a well-posed question, an LLM can read an artifact and return a verdict — "is this sound?", "does this meet the criteria?" *Consequence:* routing and verification aren't limited to mechanical rules over state; they can be semantic.
+
+8. **Fresh instances sample independently.** Two calls with different prompts and no shared context sample errors independently — the flip side of premise 4. *Consequence:* spawning a new subagent is a real reset, and multi-verifier checks aren't theater.
+
+Each principle below can be read as a response to these properties — defending against a weakness, or relying on a capability. If a principle doesn't trace to at least one, it's decoration.
 
 ---
 
@@ -176,15 +186,11 @@ A counter caps pathological infinite loops, but the harder case is loops that ke
 
 ---
 
-## 7. LLMs read any text
+## 7. Contracts between LLMs are semantic, not structural
 
-The orchestrator and the subagents are LLMs. They read prose, tables, markdown, JSON, mixed formats — whatever the upstream writer emits — and make sense of it. There is no structural requirement for parseable tokens, fixed schemas, or strict output formats between components.
+Given capability 6, specify *what information* must appear between components, not its exact shape. The consumer finds it in prose. Forcing JSON between LLMs costs expressiveness without buying safety.
 
-### Corollary (a): coverage contracts over schemas
-
-When the consumer is another LLM, specify *what information* must be present, not its exact shape. The consumer finds it in prose. Forcing JSON between LLMs costs expressiveness without buying safety.
-
-### Corollary (b): enumerated verdicts are an optimization, not a requirement
+### Corollary (a): enumerated verdicts are an optimization, not a requirement
 
 An enumerated verdict (`PASS/FAIL`, `NOVEL/INCREMENTAL/KNOWN`) is cheap to route on (§6) and reliable, so it's the default on hot paths. But on rare or ambiguous branches, the orchestrator can read the full artifact and decide — no verdict token needed. Verdicts buy efficiency; they don't buy correctness.
 

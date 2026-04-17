@@ -22,11 +22,14 @@ Each principle below can be read as "given these five failure modes, do X." If a
 
 ---
 
-## 1. CLAUDE.md is the orchestrator
+## 1. The pipeline is a Markov machine with external control flow
 
-The CLAUDE.md at the root of a project is always loaded into context. Its job is to hold the two things every step needs in order to proceed: **control flow** (where we are, what comes next, what to do on each verdict) and **state** — either inline or via a pointer to where state lives (typically a small JSON file).
+Given the five premises, two system properties are forced:
 
-Nothing else — or as close to nothing else as possible. Everything that is not control flow and not state belongs somewhere cheaper: a per-stage doc, a skill, a subagent (see §3, Delegate).
+- **State carries history explicitly.** Accumulated context degrades recall (premise 2), drifts invariants (premise 3), and inherits prior-step biases (premise 1). History must live in a compact, explicit state object — not in a growing transcript.
+- **Control flow lives outside the worker.** An LLM routing itself takes shortcuts (premise 5), forgets its place across long runs (premise 3), and can't neutrally judge its own output (premise 1). The routing graph must be structure, not the worker's judgment.
+
+CLAUDE.md is where both live: the state (or a pointer to where state is stored) and the high-level pipeline graph. It is always loaded into context; every step reads it, does its work against a fresh slice of context, writes back to state, and hands off. Everything that is not control flow and not state belongs somewhere cheaper — a per-stage doc, a skill, a subagent (see §3, Delegate).
 
 ### Pseudocode
 
@@ -41,7 +44,11 @@ while state.status == "running":
 
 CLAUDE.md contains the `while`, the shape of `state`, the high-level pipeline graph, and the top-level transition table. It does not contain the body of `run_stage` for every stage — those live in `docs/*.md` and in subagent definitions.
 
-### The big-picture graph belongs in CLAUDE.md
+### Corollary (a): state must be fresh
+
+If state is the sole carrier of history, a stale file silently breaks the Markov property — the "current" inputs a stage reads may be leftovers from a prior run. Especially load-bearing across session boundaries: a crashed-then-resumed run finds previous outputs still sitting in place and will happily consume them as this run's work. Verify intermediate inputs are current — mtime against pipeline-start, or an explicit freshness marker — before consuming.
+
+### Corollary (b): the big-picture graph lives here
 
 The orchestrator needs to know, at a glance, where it sits in the whole pipeline. If knowing "what comes after stage N" requires reading stage N's doc, every routing decision pays for an extra doc read — and the orchestrator can't reason about future stages at all without loading them.
 
@@ -49,17 +56,11 @@ So the always-loaded CLAUDE.md pays the token cost of the **overall pipeline gra
 
 Local routing (this stage's verdict space, and which stage each verdict points to) lives in the stage doc. The high-level graph in CLAUDE.md points at the stages; the stages own their own outgoing edges.
 
-### Shared values belong in CLAUDE.md
-
-Control flow and state are not the only things every step needs. Values that must shape *every* agent's judgment — "prior work is sunk cost," "surprises are discoveries," "never inflate framing," "every trade needs a why-now" — earn their place in the always-loaded context. The orchestrator reads them and bakes them into the launch prompts it writes; the agent definition restates the ones that agent must embody (§5). CLAUDE.md is the upstream layer of that redundant enforcement, and the only one the orchestrator sees when deciding how to dispatch.
-
-Narrow category, same test as §5: only commitments whose silent breach corrupts downstream work across stages. Stage-specific conventions and operational tips don't qualify — they live in the stage doc.
-
-### Corollary (a): CLAUDE.md is not a manual
+### Corollary (c): CLAUDE.md is not a manual
 
 Stage-by-stage procedures, examples, and edge-case notes are not control flow. They belong in per-stage docs loaded on demand (see §3, Delegate). Inlining them bloats always-on context and triggers long-context degradation (premise 2).
 
-### Corollary (b): CLAUDE.md is not a worker
+### Corollary (d): CLAUDE.md is not a worker
 
 Doing the work of a stage — analyzing the artifact, writing the forecast, reviewing the proof — is not control flow. It belongs inside a fresh-context subagent dispatched by the orchestrator. The moment the orchestrator does stage-level work itself, its context fills with domain material and the five failure modes re-enter through the front door. The distance that makes routing reliable is gone.
 
@@ -137,10 +138,6 @@ A numeric score or enumerated verdict is cheap to route on, but easy to game —
 ### Corollary (d): each verifier is framed adversarially
 
 A verifier told "check whether this is correct" drifts toward confirming — premise 1 reaches the verifier through its own instructions, even in a fresh context. State the job as finding errors, not evaluating correctness: the verifier has no loyalty to the work, and its goal is to break it. This is orthogonal to (b): adversarial posture applies per verifier, before any cross-verifier variation.
-
-### Corollary (e): verify inputs are current, not just that outputs are correct
-
-When a stage reads intermediate files written earlier in the run, check they are fresh — mtime against pipeline-start, or an explicit freshness marker — before consuming. A stale file from a prior run looks identical to a current one; the consumer can't tell, and corruption cascades silently downstream. Especially load-bearing across session boundaries: a crashed-then-resumed run may find previous outputs still sitting in place, and will happily read them as if they were this run's work.
 
 ---
 

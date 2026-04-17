@@ -132,6 +132,10 @@ A numeric score or enumerated verdict is cheap to route on, but easy to game —
 
 A verifier told "check whether this is correct" drifts toward confirming — premise 1 reaches the verifier through its own instructions, even in a fresh context. State the job as finding errors, not evaluating correctness: the verifier has no loyalty to the work, and its goal is to break it. This is orthogonal to (b): adversarial posture applies per verifier, before any cross-verifier variation.
 
+### Corollary (e): verify inputs are current, not just that outputs are correct
+
+When a stage reads intermediate files written earlier in the run, check they are fresh — mtime against pipeline-start, or an explicit freshness marker — before consuming. A stale file from a prior run looks identical to a current one; the consumer can't tell, and corruption cascades silently downstream. Especially load-bearing across session boundaries: a crashed-then-resumed run may find previous outputs still sitting in place, and will happily read them as if they were this run's work.
+
 ---
 
 ## 5. Enforce load-bearing invariants redundantly

@@ -28,7 +28,16 @@ Every principle here is derived from properties of LLMs as a programming substra
 
 8. **Fresh instances sample independently.** Two calls with different prompts and no shared context sample errors independently — the flip side of premise 4. *Consequence:* spawning a new subagent is a real reset, and multi-verifier checks aren't theater.
 
-Each principle below can be read as a response to these properties — defending against a weakness, or relying on a capability. If a principle doesn't trace to at least one, it's decoration.
+Each principle below can be read as a response to these properties — defending against a weakness, or relying on a capability. If a principle doesn't trace to at least one, it's decoration. The mapping:
+
+- §1 state ← 1, 2, 3
+- §1 control flow ← 1, 3, 5
+- §2 ← 2, 3
+- §3 ← 1, 2, 4, 5, 8
+- §4 ← 1, 4, 5, 7, 8
+- §5 ← 3
+- §6 ← 5, 7
+- §7 ← 2, 6
 
 ---
 
@@ -39,7 +48,7 @@ Given the five premises, two system properties are forced:
 - **State carries history explicitly.** Accumulated context degrades recall (premise 2), drifts invariants (premise 3), and inherits prior-step biases (premise 1). History must live in a compact, explicit state object — not in a growing transcript.
 - **Control flow lives outside the worker.** An LLM routing itself takes shortcuts (premise 5), forgets its place across long runs (premise 3), and can't neutrally judge its own output (premise 1). The routing graph must be structure, not the worker's judgment.
 
-CLAUDE.md is where both live: the state (or a pointer to where state is stored) and the high-level pipeline graph. It is always loaded into context; every step reads it, does its work against a fresh slice of context, writes back to state, and hands off. Everything that is not control flow and not state belongs somewhere cheaper — a per-stage doc, a skill, a subagent (see §3, Delegate).
+CLAUDE.md is where both live: the state (or a pointer to where state is stored) and the high-level pipeline graph. The orchestrator is itself an LLM session with CLAUDE.md always loaded; each step it reads state, dispatches work to a subagent (a fresh session with its own context) or loads a doc, updates state, and transitions. Everything that is not control flow and not state belongs somewhere cheaper — a per-stage doc, a skill, a subagent (see §3, Delegate).
 
 ### Pseudocode
 

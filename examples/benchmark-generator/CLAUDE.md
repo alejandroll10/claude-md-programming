@@ -109,7 +109,7 @@ No termination path depends only on LLM judgment. The budget caps pathological l
 
 **Self-recovery (§5 corollary (e)).** The REJECT → propose path with `++stuck_count` is the signal-level recovery: a failed triple triggers a new attempt, not an escalation. Termination (budget, delta) is the backstop, not the first response.
 
-Infrastructure failures (tool timeout, rate limit, parse failure) are retried at the dispatch layer up to 3 attempts and do **not** feed `stuck_count` (§5 corollary (c), separating signal and noise counters). A stage only emits `ERROR` to the transition table after dispatch retries are exhausted.
+Infrastructure failures (tool timeout, rate limit, parse failure) are retried at the dispatch layer: each agent invocation gets up to 3 independent attempts. In the verify stage, the structured and skeptic retry budgets are independent; a timeout on one does not charge the other. These retries do **not** feed `stuck_count` (§5 corollary (c), separating signal and noise counters). A stage emits `ERROR` to the transition table only after its own retry budget is exhausted.
 
 ## Commit protocol
 

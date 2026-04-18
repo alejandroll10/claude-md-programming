@@ -101,13 +101,13 @@ Mechanical (§5). The loop ends when any of:
 - `stuck_count >= 3`: budget ceiling. Set `status: "stuck"`, write `output/stuck_report.md`, halt.
 - `recent_reject_classes` has two entries (each entry is one REJECT round's set of `{verifier, class}` failures) and the two are structurally equal, delta-based (§5 corollary (b)): the feedback isn't moving, so a third attempt is unlikely to. Set `status: "stuck"`, halt. The verify stage maintains this list: it appends on REJECT (trimming to the last two rounds), and resets to `[]` on ACCEPT. Class tags come from the closed set declared in each verifier's agent definition.
 
-No termination path depends only on LLM judgment. The budget caps pathological loops; the delta check catches loops that keep executing while producing nothing.
+No termination path depends only on LLM judgment.
 
 ## Resume and self-recovery
 
 **Resume (§1 corollary (g)).** State, artifacts, and the history log are committed together at the end of each loop iteration. On startup, the orchestrator reads `state/pipeline_state.json` and re-enters the loop. If the working tree has uncommitted changes (a crash mid-stage), discard them (`git reset --hard HEAD`) so the stage is re-run cleanly from the prior commit. There is no first-run branch; the first run starts with the committed initial state.
 
-**Self-recovery (§5 corollary (e)).** The REJECT → propose path with `++stuck_count` is the signal-level recovery: a failed triple triggers a new attempt, not an escalation. Termination (budget, delta) is the backstop, not the first response.
+**Self-recovery (§5 corollary (e)).** The REJECT → propose path is the signal-level recovery: a failed triple triggers a new attempt, not an escalation. Termination (budget, delta) is the backstop, not the first response.
 
 Infrastructure failures (tool timeout, rate limit, parse failure) are retried at the dispatch layer: each agent invocation gets up to 3 independent attempts. In the verify stage, the structured and skeptic retry budgets are independent; a timeout on one does not charge the other. These retries do **not** feed `stuck_count` (§5 corollary (c), separating signal and noise counters). A stage emits `ERROR` to the transition table only after its own retry budget is exhausted.
 

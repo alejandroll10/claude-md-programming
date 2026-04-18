@@ -222,7 +222,7 @@ Capability 6 (reads-any-text) means the orchestrator reads any text, and §2 say
 
 ### Corollary (e): prefer self-recovery to escalation
 
-Mechanical termination is required (corollary (a)); the backstop must exist and must rarely fire. In the regime this doc scopes itself to (no human at the terminal), every escalation imposes a cost on someone who wasn't there. Design the pipeline so cheap self-recovery paths run out before termination fires: a fresh-instance retry to resample stochastic error (premise 4), a framing swap when the same class repeats, a fallback to a coarser approach. The delta predicate in (b) should catch genuine plateaus, not single stochastic misses, and (c)'s signal/noise separation keeps infrastructure noise out of the termination counter.
+Mechanical termination is required (corollary (a)); the backstop must exist and must rarely fire. In the regime this doc scopes itself to (no human at the terminal), every escalation imposes a cost on someone who wasn't there. Design the pipeline so cheap self-recovery paths run out before termination fires: a fresh-instance retry (premise 4), a framing swap when the same class repeats, a coarser fallback. The delta predicate in (b) should catch genuine plateaus, not single stochastic misses, and (c)'s signal/noise separation keeps infrastructure noise out of the termination counter.
 
 ---
 

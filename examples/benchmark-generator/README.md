@@ -18,8 +18,9 @@ First worked example in this repo. Translates the principles in `../../principle
 - `CLAUDE.md`: the orchestrator.
 - `state/pipeline_state.json`: initial state.
 - `docs/stage_propose.md`, `docs/stage_solve.md`, `docs/stage_verify.md`: the three stage docs. `stage_verify.md` is the representative one and exercises every §4 corollary; the other two are deliberately shorter.
+- `.claude/agents/proposer.md` and `.claude/agents/solver.md`: the proposer and solver.
 - `.claude/agents/verifier-structured.md` and `.claude/agents/verifier-skeptic.md`: the two verifiers, with distinct framings (§4 corollary (b)).
 
-The `proposer` and `solver` agent definitions referenced from the stage docs are not yet written. Their stages are simple enough that the stage doc specifies the procedure without a full agent file; adding them is the next iteration. The example should stay as small as it can be while being real.
+The example should stay as small as it can be while being real; each new file needs to earn its place.
 
 The domain is synthetic. Swap "benchmark generator" for any pipeline with the same shape (dataset curation, translation review, proof-obligation discharge) and the scaffolding carries over.

@@ -220,6 +220,10 @@ Long runs accumulate infrastructure failures (premise 10) alongside task-signal 
 
 Capability 6 (reads-any-text) means the orchestrator reads any text, and §2 says structure costs tokens without buying safety unless it earns its keep. An enumerated verdict (`PASS/FAIL`, `NOVEL/INCREMENTAL/KNOWN`) is cheap to route on, so it's the default on hot paths (structure that earns its keep). On rare or ambiguous branches, the orchestrator can read the full artifact and decide; no verdict token needed. Verdicts buy efficiency, not correctness.
 
+### Corollary (e): prefer self-recovery to escalation
+
+Mechanical termination is required (corollary (a)); frequent mechanical termination is a smell. In the regime this doc scopes itself to (no human at the terminal), every escalation imposes a cost on someone who wasn't there. Design the pipeline so cheap self-recovery paths run out before termination fires: a fresh-instance retry to resample stochastic error (premise 4), a framing swap when the same class repeats, a fallback to a coarser approach. The delta predicate in (b) should catch genuine plateaus, not single stochastic misses.
+
 ---
 
 ## 6. Parallelize independent dispatches

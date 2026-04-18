@@ -36,7 +36,7 @@ Every principle here is derived from structural properties: LLM weaknesses and c
 
 Each principle below can be read as a response to these properties (defending against a weakness, leaning on a capability, or trading on the deployment side). If a principle doesn't trace to at least one, it's decoration. The mapping:
 
-- §1 state ← 1, 2, 3
+- §1 state ← 1, 2, 3, 10
 - §1 control flow ← 1, 3, 5
 - §2 ← 2, 3, 9
 - §3 ← 1, 2, 3, 4, 5, 6, 8
@@ -102,9 +102,9 @@ Some facts the pipeline depends on describe the *environment*, not the work (whi
 
 ### Corollary (g): resumability is a property, not a feature
 
-A long-running pipeline outlives any single session. Laptops sleep, processes get killed, tools rate-limit, connections drop. Combined with corollary (a)'s atomic-commit requirement, this forces the orchestrator's entry point to be the same on a fresh run and on a resume: read state, and if `status == "running"` with `current_stage` set, continue from there. No "first run?" branch, no re-execution of completed transitions.
+A long-running pipeline outlives any single session (premise 10, infrastructure fails). Laptops sleep, processes get killed, tools rate-limit, connections drop. Corollary (a)'s atomic-commit requirement makes resume safe; the remaining design choice is to eliminate the first-run branch entirely by shipping a valid initial state pre-committed. The orchestrator's entry point is then the same on a fresh run and on a resume: read state, and if `status == "running"` with `current_stage` set, continue from there.
 
-This in turn forces a property on every stage: its effects must be either committed to state when the transition commit lands, or safely redoable from the post-commit state. A stage that writes artifacts without recording them in state will leave orphans after a crash; a stage that marks itself complete before the real work is done will silently skip work on resume. The atomic commit is the fence, and each side of the fence has to hold up on its own.
+This in turn demands a property on every stage: its effects must be either committed to state when the transition commit lands, or safely redoable from the post-commit state. A stage that writes artifacts without recording them in state leaves orphans after a crash; one that marks itself complete before finishing silently skips work on resume. The atomic commit is the fence, and each side has to hold up on its own. On resume, the orchestrator should discard any uncommitted working-tree changes left by a crashed stage before continuing; doing so assumes the pipeline runs in a dedicated directory where untracked files are always orphan artifacts, never user work.
 
 ---
 
@@ -222,7 +222,7 @@ Capability 6 (reads-any-text) means the orchestrator reads any text, and §2 say
 
 ### Corollary (e): prefer self-recovery to escalation
 
-Mechanical termination is required (corollary (a)); frequent mechanical termination is a smell. In the regime this doc scopes itself to (no human at the terminal), every escalation imposes a cost on someone who wasn't there. Design the pipeline so cheap self-recovery paths run out before termination fires: a fresh-instance retry to resample stochastic error (premise 4), a framing swap when the same class repeats, a fallback to a coarser approach. The delta predicate in (b) should catch genuine plateaus, not single stochastic misses.
+Mechanical termination is required (corollary (a)); the backstop must exist and must rarely fire. In the regime this doc scopes itself to (no human at the terminal), every escalation imposes a cost on someone who wasn't there. Design the pipeline so cheap self-recovery paths run out before termination fires: a fresh-instance retry to resample stochastic error (premise 4), a framing swap when the same class repeats, a fallback to a coarser approach. The delta predicate in (b) should catch genuine plateaus, not single stochastic misses, and (c)'s signal/noise separation keeps infrastructure noise out of the termination counter.
 
 ---
 

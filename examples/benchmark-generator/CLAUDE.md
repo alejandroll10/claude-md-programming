@@ -103,6 +103,14 @@ Mechanical (§5). The loop ends when any of:
 
 No termination path depends only on LLM judgment. The budget caps pathological loops; the delta check catches loops that keep executing while producing nothing.
 
+## Resume and self-recovery
+
+**Resume (§1 corollary (g)).** State, artifacts, and the history log are committed together at the end of each loop iteration. On startup, the orchestrator reads `state/pipeline_state.json` and re-enters the loop. If the working tree has uncommitted changes (a crash mid-stage), discard them (`git reset --hard HEAD`) so the stage is re-run cleanly from the prior commit. There is no first-run branch; the first run starts with the committed initial state.
+
+**Self-recovery (§5 corollary (e)).** The REJECT → propose path with `++stuck_count` is the signal-level recovery: a failed triple triggers a new attempt, not an escalation. Termination (budget, delta) is the backstop, not the first response.
+
+Infrastructure failures (tool timeout, rate limit, parse failure) are retried at the dispatch layer up to 3 attempts and do **not** feed `stuck_count` (§5 corollary (c), separating signal and noise counters). A stage only emits `ERROR` to the transition table after dispatch retries are exhausted.
+
 ## Commit protocol
 
 One commit per stage transition. Prefix: `pipeline:` for state changes, `artifact:` for stage output. Never batch.

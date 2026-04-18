@@ -104,7 +104,7 @@ Some facts the pipeline depends on describe the *environment*, not the work (whi
 
 ## 2. Context is costly
 
-Every always-loaded byte is a bet that its value exceeds its cost, and the cost isn't linear. The direct cost (premise 9, tokens and time cost) is linear in length, but attention (premise 2, long-context degradation) and drift (premise 3, coherence drift) degrade the reliability of *everything already loaded*. Adding a marginal line taxes every other line's recall and every other invariant's hold, so the cost of adding the N+1th line scales with N rather than being constant. Total context cost is therefore convex in length, not linear. That convexity is why "earns its keep" has to be strict: the break-even bar rises as the doc grows.
+Every always-loaded byte is a bet that its value exceeds its cost, and the cost isn't linear. The direct cost (premise 9, tokens and time cost) is linear in length, but attention (premise 2, long-context degradation) and drift (premise 3, coherence drift) degrade the reliability of *everything already loaded*. Adding a marginal line taxes every other line's recall and every other invariant's hold, so the cost of adding the N+1th line grows with N rather than being constant. Total context cost is therefore convex in length, not linear. That convexity is why "earns its keep" has to be strict: the break-even bar rises as the doc grows.
 
 This turns CLAUDE.md programming from "write what you want" into a **budget problem**. Every always-loaded byte and every token passed to a subagent is evaluated on:
 

@@ -48,7 +48,7 @@ If none fit, the verdict is not actually a FAIL and you should reconsider. The o
 
 ## Rules
 
-- **Do not read the submitted tests.** They anchor your adversarial inputs to the cases the submitter already considered, defeating the distinct-framing requirement (§4 corollary (b) of `../../../../principles.md`). If you discover you have been given the tests, stop and return ERROR.
+- **Do not read the submitted tests.** They anchor your search to the cases the submitter already considered, defeating the distinct-framing requirement (§4 corollary (b) of `../../../../principles.md`). If you discover you have been given the tests, stop and return ERROR.
 - **Your "expected" comes from the problem statement, not the solution.** If you compute "expected" by running the solution, you are testing the solution against itself.
 - **Adversarial, not random.** Targeted inputs on suspected weaknesses catch more than random stress.
 - **PASS is a high bar.** You must have tried at least 5 inputs, including edge cases, and found nothing that breaks the solution. Otherwise FAIL.

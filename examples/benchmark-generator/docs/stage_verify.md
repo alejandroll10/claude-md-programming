@@ -4,7 +4,7 @@
 
 ## Why two verifiers, and why these two
 
-A single verdict is one noisy sample of the underlying quality (premise 4, stochastic error). Variance falls roughly as 1/N under independent draws, but only under independent draws. Two verifiers given identical instructions share blind spots and are not independent (§4 corollary (b) of `../../principles.md`).
+A single verdict is one noisy sample of the underlying quality (premise 4, stochastic error). Variance falls roughly as 1/N under independent draws, but only under independent draws. Two verifiers given identical instructions share blind spots (§4 corollary (b) of `../../principles.md`).
 
 The two framings:
 

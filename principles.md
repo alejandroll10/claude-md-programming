@@ -16,7 +16,7 @@ Every principle here is derived from structural properties: LLM weaknesses and c
 
 3. **Coherence drift.** Across many steps, invariants get forgotten, overridden, or silently reinterpreted. Small local departures compound. *Consequence:* rules that must hold across a whole run need redundant enforcement, not a single statement.
 
-4. **Stochastic error: outputs are noisy signals.** Every output, including evaluations and verdicts, is a noisy sample of a latent quality, not the quality itself. Even on tasks the model can do, some fraction of attempts fail: a sign slip, an off-by-one, a dropped constraint, a misread token. *Consequence:* a single pass is evidence, not a measurement. A different instance often catches the error because the error roll is independent, which is what makes adversarial review and multi-pass verification load-bearing. The same framing explains why optimizing against a single score invites Goodhart: the score drifts from the latent quantity it was meant to track.
+4. **Stochastic error: outputs are noisy signals.** Every output is a noisy sample of a latent quality, not the quality itself. Even on tasks the model can do, some fraction of attempts fail: a sign slip, an off-by-one, a dropped constraint, a misread token. *Consequence:* a single pass is evidence, not a measurement. A different instance often catches the error because the error roll is independent, which is what makes adversarial review and multi-pass verification load-bearing. The same framing explains why optimizing against a single score invites Goodhart: the score drifts from the latent quantity it was meant to track.
 
 5. **Path-of-least-resistance.** LLMs are trained to fulfill objectives, so when several paths satisfy the letter of an instruction they prefer the cheapest one (a shortcut, surface-level compliance, a premature "done"). This shows up as specification gaming (technically fulfilling the ask while missing the intent), skipping available tools because they're unfamiliar, and declaring a task complete before the harder part is actually attempted. *Consequence:* self-reports aren't evidence. If the path isn't specified explicitly and checked externally, the model fills the gap with shortcuts.
 
@@ -98,7 +98,7 @@ Long autonomous runs also produce human-facing artifacts (logs, dashboards, comm
 
 ### Corollary (f): establish environmental ground truth before the loop
 
-Some facts the pipeline depends on describe the *environment*, not the work (which data sources exist, which tools have credentials, which services are up). If each stage re-derives or silently assumes these, they drift (premise 3, coherence drift) and fill gaps with shortcuts (premise 5, path-of-least-resistance). Capture them once at pipeline entry in a reference artifact every stage reads. This is a third artifact class beyond routing state and observability: the pipeline consumes it, but the orchestrator doesn't transition on it. If the environment changes mid-run, update the artifact and commit the update. Silent drift in ground truth is the worst kind, because every stage downstream inherits the stale assumption.
+Some facts the pipeline depends on describe the *environment*, not the work (which data sources exist, which tools have credentials, which services are up). If each stage re-derives or silently assumes these, they drift (premise 3, coherence drift) and fill gaps with shortcuts (premise 5, path-of-least-resistance). Capture them once at pipeline entry in a reference artifact every stage reads. This is a third artifact class beyond routing state and observability: the pipeline consumes it, but the orchestrator doesn't transition on it. If the environment changes mid-run, update the artifact and commit the update. Silent drift in ground truth is worst: every stage downstream inherits the stale assumption.
 
 ---
 
@@ -169,11 +169,11 @@ Workers defend their own output (premise 1, self-bias) and prefer cheap paths (p
 
 ### Corollary (a): at least two verifiers, more when the signal is noisier
 
-A verifier's verdict is one noisy sample of the underlying quality (premise 4, stochastic error). Independent samples reduce variance and lower the odds that a correlated error goes unchecked; one verifier's report is evidence, not proof. Two is the floor; add more where the signal is especially noisy, since variance falls as 1/N.
+Independent samples reduce variance and lower the odds that a correlated error goes unchecked; one verifier's report is evidence, not proof. Two is the floor; add more where the signal is especially noisy, since variance falls as 1/N.
 
 ### Corollary (b): distinct framings
 
-The 1/N variance bound in (a) assumes independence. Two verifiers given identical instructions aren't independent; they share the blind spots the instructions force them into. Vary the framing: different postures (structured step-by-step re-derivation vs. skeptical-reader holistic pass), different phrasings of the question, different rubrics on the same target. The less the instructions overlap, the closer to independent the samples get, and the more each additional verifier actually buys. Framing is the floor; different models, tools, or context sizes reduce correlation further, and same-model pairs should be treated as less correlated, not independent.
+The 1/N variance bound in (a) assumes independence. Two verifiers given identical instructions aren't independent; they share the blind spots the instructions force them into. Vary the framing: different postures (structured step-by-step re-derivation vs. skeptical-reader holistic pass), different phrasings of the question, different rubrics on the same target. The less the instructions overlap, the closer to independent the samples get, and the more each additional verifier actually buys. Framing is the floor; different models, tools, or context sizes reduce correlation further.
 
 ### Corollary (c): at least one free-form
 

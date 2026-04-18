@@ -2,7 +2,7 @@
 
 ## Scope
 
-This document is for **long-running autonomous systems** (pipelines where Claude is expected to work for hours or days with no human at the terminal). The design choices that follow make sense in that regime and may be overkill for short interactive sessions. In an autonomous system, every step must know what to do next without a human to ask; robustness compounds over the run length; and the cost of a silent failure is high because no one is watching.
+This document is for **long-running autonomous systems** (pipelines where Claude is expected to work for hours or days with no human at the terminal). The design may be overkill for interactive sessions. In an autonomous system, every step must know what to do next without a human to ask; robustness compounds over the run length; and the cost of a silent failure is high because no one is watching.
 
 ## Premises
 
@@ -28,18 +28,20 @@ Every principle here is derived from structural properties: LLM weaknesses and c
 
 8. **Fresh instances sample independently.** Two calls with different prompts and no shared context sample errors independently (the flip side of premise 4, stochastic error). *Consequence:* spawning a new subagent is a real reset, and multi-verifier checks aren't theater.
 
-### Cost
+### Deployment
 
-9. **Cheaper and faster is better.** Wall-clock time and token usage are load-bearing on their own, not only through reliability. *Consequence:* at equal correctness, the cheaper or faster design wins.
+9. **Cost is convex.** Every token and every second is load-bearing, and the marginal cost rises with load: as context grows, attention and coherence (premises 2, 3) degrade the reliability of everything already loaded, so each added byte taxes every earlier one. *Consequence:* at equal correctness, the cheaper design wins, and the break-even bar for adding context rises as the doc grows.
 
-Each principle below can be read as a response to these properties (defending against a weakness, leaning on a capability, or trading on the cost side). If a principle doesn't trace to at least one, it's decoration. The mapping:
+10. **Infrastructure fails independently of the work.** Long autonomous runs accumulate transient failures (tool timeouts, rate limits, malformed outputs from a flake, network blips) that are exogenous to the task signal. *Consequence:* any predicate or counter fed by task signal must distinguish exogenous from endogenous failures, or the downstream decision is noisier than the signal warrants.
+
+Each principle below can be read as a response to these properties (defending against a weakness, leaning on a capability, or trading on the deployment side). If a principle doesn't trace to at least one, it's decoration. The mapping:
 
 - §1 state ← 1, 2, 3
 - §1 control flow ← 1, 3, 5
 - §2 ← 2, 3, 9
 - §3 ← 1, 2, 3, 4, 5, 8
 - §4 ← 1, 4, 5, 7, 8
-- §5 ← 2, 5, 6, 7, 9
+- §5 ← 2, 5, 6, 7, 9, 10
 - §6 ← 9
 
 ---
@@ -208,7 +210,7 @@ A counter caps pathological infinite loops, but the harder case is loops that ke
 
 ### Corollary (c): separate signal retries from noise retries
 
-Not every failed attempt is evidence the work is hard. Some are tool timeouts, rate limits, malformed outputs from a flake. Counting both kinds against the same budget (premise 4, stochastic error blurs into infrastructure noise) means a flaky network can trip termination on a task the pipeline would otherwise complete, or a genuinely stuck loop hides behind "retry, it was just a blip." Keep two counters: one for signal-driven failures (verifier REJECT, solver gave up) that feed the termination predicate; one for noise-driven failures (tool error, parse failure) that get retried at the dispatch layer and bounded separately. When they collapse into one field, every downstream decision is noisier than it needs to be.
+Long runs accumulate infrastructure failures (premise 10) alongside task-signal failures (premise 4). The two have different remedies: task failures feed termination; infrastructure failures get retried at the dispatch layer. Collapsing them into one counter means a flaky network trips termination on a task the pipeline would otherwise complete, or a genuinely stuck loop hides behind "retry, it was just a blip." Keep two counters: one for signal-driven failures (verifier REJECT, solver gave up); one for noise-driven failures (tool error, parse failure), bounded separately.
 
 ### Corollary (d): LLM-judged inputs don't need schemas
 
@@ -218,7 +220,7 @@ Capability 6 (reads-any-text) means the orchestrator reads any text, and §2 say
 
 ## 6. Parallelize independent dispatches
 
-When two dispatches have no data dependency, run them concurrently. Run quality is unchanged; wall-clock time falls. Traces to premise 9 (cheaper and faster is better).
+When two dispatches have no data dependency, run them concurrently. Run quality is unchanged; wall-clock time falls. Traces to premise 9 (cost is convex): parallel dispatch does not reduce tokens, but it cuts wall-clock and therefore the coherence-drift surface area the run accumulates.
 
 Constraint: parallelism is in dispatch, not in state mutation. Parallel branches write distinct keys, or the orchestrator gathers writes after both return. Concurrent writes to the same field race.
 

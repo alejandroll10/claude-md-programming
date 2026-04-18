@@ -48,7 +48,7 @@ Each principle below can be read as a response to these properties (defending ag
 
 ## 1. The pipeline is a Markov machine with external control flow
 
-Given the five premises, two system properties are forced:
+Given the premises above, two system properties are forced:
 
 - **State carries history explicitly.** Accumulated context degrades recall (premise 2, long-context degradation), drifts invariants (premise 3, coherence drift), and inherits prior-step biases (premise 1, self-bias). History must live in a compact, explicit state object, not in a growing transcript.
 - **Control flow lives outside the worker.** An LLM routing itself takes shortcuts (premise 5, path-of-least-resistance), forgets its place across long runs (premise 3, coherence drift), and can't neutrally judge its own output (premise 1, self-bias). The routing graph must be structure, not the worker's judgment.
@@ -218,7 +218,7 @@ Capability 6 (reads-any-text) means the orchestrator reads any text, and §2 say
 
 ## 6. Parallelize independent dispatches
 
-When two dispatches have no data dependency, run them concurrently. Run quality is unchanged; wall-clock time falls. Traces to premise 9 (cost is convex): parallel dispatch does not reduce tokens, but it cuts wall-clock and therefore the coherence-drift surface area the run accumulates.
+When two dispatches have no data dependency, run them concurrently. Run quality is unchanged; wall-clock time falls. Traces to premise 9 (cost is convex): latency is part of the cost surface, so cutting wall-clock without changing the token load is a pure win.
 
 Constraint: parallelism is in dispatch, not in state mutation. Parallel branches write distinct keys, or the orchestrator gathers writes after both return. Concurrent writes to the same field race.
 

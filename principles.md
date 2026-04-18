@@ -100,6 +100,12 @@ Long autonomous runs also produce human-facing artifacts (logs, dashboards, comm
 
 Some facts the pipeline depends on describe the *environment*, not the work (which data sources exist, which tools have credentials, which services are up). If each stage re-derives or silently assumes these, they drift (premise 3, coherence drift) and fill gaps with shortcuts (premise 5, path-of-least-resistance). Capture them once at pipeline entry in a reference artifact every stage reads. This is a third artifact class beyond routing state and observability: the pipeline consumes it, but the orchestrator doesn't transition on it. If the environment changes mid-run, update the artifact and commit the update. Silent drift in ground truth is worst: every stage downstream inherits the stale assumption.
 
+### Corollary (g): resumability is a property, not a feature
+
+A long-running pipeline outlives any single session. Laptops sleep, processes get killed, tools rate-limit, connections drop. Combined with corollary (a)'s atomic-commit requirement, this forces the orchestrator's entry point to be the same on a fresh run and on a resume: read state, and if `status == "running"` with `current_stage` set, continue from there. No "first run?" branch, no re-execution of completed transitions.
+
+This in turn forces a property on every stage: its effects must be either committed to state when the transition commit lands, or safely redoable from the post-commit state. A stage that writes artifacts without recording them in state will leave orphans after a crash; a stage that marks itself complete before the real work is done will silently skip work on resume. The atomic commit is the fence, and each side of the fence has to hold up on its own.
+
 ---
 
 ## 2. Context is costly

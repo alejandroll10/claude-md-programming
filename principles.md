@@ -26,7 +26,7 @@ Every principle here is derived from structural properties: LLM weaknesses and c
 
 7. **Judges open-ended predicates.** Given a well-posed question, an LLM can read an artifact and return a verdict ("is this sound?", "does this meet the criteria?"). *Consequence:* routing and verification aren't limited to mechanical rules over state; they can be semantic.
 
-8. **Fresh instances sample independently.** Two calls with different prompts and no shared context sample errors independently (the flip side of premise 4, stochastic error). *Consequence:* spawning a new subagent is a real reset, and multi-verifier checks aren't theater.
+8. **Fresh instances are less correlated, not independent.** Two calls with different prompts and no shared context sample errors at substantially lower correlation than a single continuation, but not at zero: they still share the model's weights, training-data biases, and systematic failure modes. *Consequence:* spawning a new subagent is a real reset of session-local context and dramatically reduces correlated failure, but multi-verifier variance reduction has a floor at the model-level correlation. Crossing different models lowers the floor further.
 
 ### Deployment
 
@@ -171,11 +171,11 @@ The count is descriptive, not prescriptive: restate at each surface the rule can
 
 ## 4. Verify, don't trust
 
-Workers defend their own output (premise 1, self-bias) and prefer cheap paths (premise 5, path-of-least-resistance), so self-reports aren't evidence the work got done. And any verdict, from a worker or a verifier, is a noisy sample of the underlying quality (premise 4, stochastic error): one draw isn't enough. Verify everything the orchestrator will route on using other LLMs (capability 7, judges predicates), not the same instance (capability 8, fresh-instance independence).
+Workers defend their own output (premise 1, self-bias) and prefer cheap paths (premise 5, path-of-least-resistance), so self-reports aren't evidence the work got done. And any verdict, from a worker or a verifier, is a noisy sample of the underlying quality (premise 4, stochastic error): one draw isn't enough. Verify everything the orchestrator will route on using other LLMs (capability 7, judges predicates), not the same instance (capability 8, fresh-instance sampling).
 
 ### Corollary (a): at least two verifiers, more when the signal is noisier
 
-Independent samples reduce variance and lower the odds that a correlated error goes unchecked; one verifier's report is evidence, not proof. Two is the floor; add more where the signal is especially noisy, since variance falls as 1/N.
+Less-correlated samples reduce variance and lower the odds that a correlated error goes unchecked; one verifier's report is evidence, not proof. Two is the floor; add more where the signal is especially noisy. Variance falls as 1/N only in the independent limit (premise 8 says fresh instances approach but don't reach it), so each extra verifier on the same model buys less than the ideal bound.
 
 ### Corollary (b): distinct framings
 

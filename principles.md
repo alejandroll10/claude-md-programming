@@ -30,7 +30,7 @@ Every principle here is derived from structural properties: LLM weaknesses and c
 
 ### Deployment
 
-9. **Cost is convex.** Every token and every second is load-bearing, and the marginal cost rises with load: as context grows, attention and coherence (premises 2, 3) degrade the reliability of everything already loaded, so each added byte taxes every earlier one. *Consequence:* at equal correctness, the cheaper design wins, and the break-even bar for adding context rises as the doc grows.
+9. **Cost is convex.** Tokens and wall-clock time cost dollars and latency linearly, but the marginal cost rises with load: as context grows, attention and coherence (premises 2, 3) degrade the reliability of everything already loaded, so each added byte taxes every earlier one. *Consequence:* at equal correctness, the cheaper design wins, and the break-even bar for adding context rises as the doc grows.
 
 10. **Infrastructure fails independently of the work.** Long autonomous runs accumulate transient failures (tool timeouts, rate limits, malformed outputs from a flake, network blips) that are exogenous to the task signal. *Consequence:* any predicate or counter fed by task signal must distinguish exogenous from endogenous failures, or the downstream decision is noisier than the signal warrants.
 
@@ -70,7 +70,7 @@ CLAUDE.md contains the `while`, the shape of `state`, the high-level pipeline gr
 
 ### Corollary (a): state must be fresh
 
-If state is the sole carrier of history, a stale file silently breaks the Markov property. The "current" inputs a stage reads may be leftovers from a prior run. Especially load-bearing across session boundaries: a crashed-then-resumed run finds previous outputs still sitting in place and will happily consume them as this run's work. Verify intermediate inputs are current (mtime against pipeline-start, or an explicit freshness marker) before consuming.
+If state is the sole carrier of history, a stale file silently breaks the Markov property. The "current" inputs a stage reads may be leftovers from a prior run. The failure mode sharpens across session boundaries: a crashed-then-resumed run finds previous outputs still sitting in place and will happily consume them as this run's work. Verify intermediate inputs are current (mtime against pipeline-start, or an explicit freshness marker) before consuming.
 
 Each transition must also be written atomically and durably before the next begins. Batching multiple logical transitions into one write leaves the resume point ambiguous after a crash. Git commits, write-ahead logs, and append-only journals all qualify; the principle is the atomicity, not the tool.
 

@@ -6,7 +6,7 @@ First worked example in this repo. Translates the principles in `../../principle
 
 ## What to notice
 
-- **`CLAUDE.md`** carries only the pipeline graph, the state shape, the load-bearing invariants, and pointers to stage docs. Stage procedures live under `docs/`. (§1, §2)
+- **`CLAUDE.md`** carries only the pipeline graph, the state shape, the invariants, and pointers to stage docs. Stage procedures live under `docs/`. (§1, §2)
 - **`state/pipeline_state.json`** is compact (routing state, not observability). (§1 corollary (e))
 - **Each stage dispatches a fresh-context subagent.** The orchestrator never does stage-level work itself. (§1 corollary (d), §3)
 - **Verification is its own stage** with two verifiers under different framings, both adversarially posed. The solver never sees the verifier. (§4)

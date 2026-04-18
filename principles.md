@@ -30,7 +30,7 @@ Every principle here is derived from structural properties: LLM weaknesses and c
 
 ### Deployment
 
-9. **Cost is convex.** Tokens and wall-clock time cost dollars and latency linearly, but the marginal cost rises with load: as context grows, attention and coherence (premises 2, 3) degrade the reliability of everything already loaded, so each added byte taxes every earlier one. *Consequence:* at equal correctness, the cheaper design wins, and the break-even bar for adding context rises as the doc grows.
+9. **Tokens and time cost.** Every token spent charges dollars and latency; every second of wall-clock charges latency. Costs are linear in the input and real on every run. *Consequence:* at equal correctness, the cheaper design wins. Convexity (the marginal cost of added context rising because premises 2 and 3 make earlier content less reliable) is derived in §2, not assumed here.
 
 10. **Infrastructure fails independently of the work.** Long autonomous runs accumulate transient failures (tool timeouts, rate limits, malformed outputs from a flake, network blips) that are exogenous to the task signal. *Consequence:* any predicate or counter fed by task signal must distinguish exogenous from endogenous failures, or the downstream decision is noisier than the signal warrants.
 
@@ -104,7 +104,7 @@ Some facts the pipeline depends on describe the *environment*, not the work (whi
 
 ## 2. Context is costly
 
-Every always-loaded byte is a bet that its value exceeds its cost, and the cost isn't linear. Tokens scale linearly with length (dollars, latency), but attention (premise 2, long-context degradation) and drift (premise 3, coherence drift) degrade the reliability of *everything already loaded*. Adding a marginal line taxes every other line's recall and every other invariant's hold. That convexity is why "earns its keep" has to be strict: the break-even bar rises as the doc grows.
+Every always-loaded byte is a bet that its value exceeds its cost, and the cost isn't linear. The direct cost (premise 9, tokens and time cost) is linear in length, but attention (premise 2, long-context degradation) and drift (premise 3, coherence drift) degrade the reliability of *everything already loaded*. Adding a marginal line taxes every other line's recall and every other invariant's hold. That convexity is why "earns its keep" has to be strict: the break-even bar rises as the doc grows.
 
 This turns CLAUDE.md programming from "write what you want" into a **budget problem**. Every always-loaded byte and every token passed to a subagent is evaluated on:
 
@@ -218,7 +218,7 @@ Capability 6 (reads-any-text) means the orchestrator reads any text, and §2 say
 
 ## 6. Parallelize independent dispatches
 
-When two dispatches have no data dependency, run them concurrently. Run quality is unchanged; wall-clock time falls. Traces to premise 9 (cost is convex): latency is part of the cost surface, so cutting wall-clock without changing the token load is a pure win.
+When two dispatches have no data dependency, run them concurrently. Run quality is unchanged; wall-clock time falls. Traces to premise 9 (tokens and time cost): latency is part of the cost surface, so cutting wall-clock without changing the token load is a pure win.
 
 Constraint: parallelism is in dispatch, not in state mutation. Parallel branches write distinct keys, or the orchestrator gathers writes after both return. Concurrent writes to the same field race.
 

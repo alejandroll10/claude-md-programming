@@ -20,7 +20,23 @@ Shape:
 }
 ```
 
-Observability (one JSONL line per transition) is appended to `output/history.jsonl`, not stored in routing state (§1 corollary (e)). The orchestrator never reads it.
+Observability (one JSONL line per transition) is appended to `output/history.jsonl`, not stored in routing state (§1 corollary (e)). The orchestrator never reads it for routing; the `propose` stage does scan it once per invocation to build a de-duplication list of prior titles, which is worker input, not a routing decision.
+
+Line shape:
+
+```json
+{
+  "ts": "<ISO 8601 UTC>",
+  "stage": "propose" | "solve" | "verify",
+  "verdict": "<stage verdict, e.g. PROPOSED, SOLVED, ACCEPT, REJECT, ERROR>",
+  "id": "<problem id or null before mint>",
+  "title": "<problem title, set by propose; null elsewhere>",
+  "reject_classes": [{"verifier": "structured" | "skeptic", "class": "<tag>"}] | null,
+  "notes": "<free-form, optional>"
+}
+```
+
+`title` is populated only by `propose`. `reject_classes` is populated only by `verify` on REJECT and carries the same tags the verify stage writes into `recent_reject_classes` in state (see termination). All other fields required every line.
 
 ## Pipeline graph
 

@@ -28,11 +28,13 @@ Steps 2 and 3 are independent and may run in parallel.
 
 ## Verdict → next stage
 
-| Structured | Skeptic | Next                                         |
-|------------|---------|----------------------------------------------|
-| PASS       | PASS    | propose (++problems_completed, ACCEPT)       |
-| PASS       | FAIL    | propose (++stuck_count, REJECT)              |
-| FAIL       | *       | propose (++stuck_count, REJECT)              |
+Local verdict is the `(Structured, Skeptic)` pair. The orchestrator collapses it to the top-level verdicts named in `../CLAUDE.md`'s transition table: double PASS → `ACCEPT`, anything else → `REJECT`.
+
+| Structured | Skeptic | Top-level | Next                                         |
+|------------|---------|-----------|----------------------------------------------|
+| PASS       | PASS    | ACCEPT    | propose (++problems_completed)               |
+| PASS       | FAIL    | REJECT    | propose (++stuck_count)                      |
+| FAIL       | *       | REJECT    | propose (++stuck_count)                      |
 
 The orchestrator, not either verifier, routes on the pair. Neither verifier knows the other's verdict.
 

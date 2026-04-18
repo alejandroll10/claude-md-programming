@@ -151,7 +151,7 @@ The orchestrator's loop becomes very short: read state, pick a vehicle, dispatch
 
 ### Corollary: load-bearing invariants travel with the delegation
 
-Delegation moves work out of the orchestrator's context and into docs, skills, and agents. Each delegation target is a fresh surface where an invariant can be silently dropped (premise 3, coherence drift). Rules whose breach is **silent, cascading, and reachable from more than one surface** must be restated at each surface, not only at the dispatch site.
+Delegation moves work out of the orchestrator's context and into docs, skills, and agents. Each delegation target is a fresh surface where an invariant can be silently dropped (premise 3, coherence drift). Not every invariant needs cross-surface restatement; only the subset whose breach is **silent, cascading, and reachable from more than one surface** must be restated at each surface, not only at the dispatch site. This narrower subset is what "load-bearing invariants" refers to throughout.
 
 In this architecture the surfaces are typically three:
 

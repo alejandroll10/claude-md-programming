@@ -81,7 +81,7 @@ Local routing (verdict space within each stage) lives in the stage doc.
 
 ## Load-bearing invariants
 
-Project-specific rules whose silent breach corrupts downstream work. Per §3's delegation corollary, they are stated at each surface the work enters from: here, in the relevant stage doc, and in each agent definition. Each surface has its own failure mode; stating once would leave the others uncovered.
+Project-specific rules whose silent breach corrupts downstream work. Per §3's delegation corollary, they are stated at each surface: here, in each stage doc, and in each agent definition.
 
 1. **Every accepted triple passes two independent verifiers under distinct framings.** One verifier is a noisy sample (premise 4, stochastic error); identical framings share blind spots (§4 corollaries (a), (b)).
 2. **Verifiers never see the solver's context.** Verification is a distinct stage dispatched by this orchestrator (§4 corollary (e)). The solver does not choose the verifier's framing.

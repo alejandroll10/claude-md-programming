@@ -16,7 +16,7 @@ Every principle here is derived from structural properties: LLM weaknesses and c
 
 3. **Coherence drift.** Across many steps, invariants get forgotten, overridden, or silently reinterpreted. Small local departures compound. *Consequence:* rules that must hold across a whole run need redundant enforcement, not a single statement.
 
-4. **Stochastic error: outputs are noisy signals.** Every output, including evaluations and verdicts, is a noisy sample of a latent quality, not the quality itself. Even on tasks the model can do, some fraction of attempts fail: a sign slip, an off-by-one, a dropped constraint, a misread token. *Consequence:* a single pass is evidence, not a measurement. A different instance with the same model often catches the error because the error roll is independent, which is what makes adversarial review and multi-pass verification load-bearing rather than decorative. The same framing explains why optimizing against a single score invites Goodhart: the score drifts from the latent quantity it was meant to track.
+4. **Stochastic error: outputs are noisy signals.** Every output, including evaluations and verdicts, is a noisy sample of a latent quality, not the quality itself. Even on tasks the model can do, some fraction of attempts fail: a sign slip, an off-by-one, a dropped constraint, a misread token. *Consequence:* a single pass is evidence, not a measurement. A different instance often catches the error because the error roll is independent, which is what makes adversarial review and multi-pass verification load-bearing. The same framing explains why optimizing against a single score invites Goodhart: the score drifts from the latent quantity it was meant to track.
 
 5. **Path-of-least-resistance.** LLMs are trained to fulfill objectives, so when several paths satisfy the letter of an instruction they prefer the cheapest one (a shortcut, surface-level compliance, a premature "done"). This shows up as specification gaming (technically fulfilling the ask while missing the intent), skipping available tools because they're unfamiliar, and declaring a task complete before the harder part is actually attempted. *Consequence:* self-reports aren't evidence. If the path isn't specified explicitly and checked externally, the model fills the gap with shortcuts.
 
@@ -125,7 +125,7 @@ Consequences:
 
 ## 3. Delegate
 
-The orchestrator is not the worker (§1), and context is costly (§2). Put together, these force delegation: the machinery to do the work should not live in the orchestrator's context. It lives somewhere else, loaded or spawned only when needed.
+§1 and §2 together force delegation: the machinery to do the work should not live in the orchestrator's context. It lives somewhere else, loaded or spawned only when needed.
 
 Three vehicles for delegation, ordered by cost and isolation:
 
@@ -151,7 +151,7 @@ The orchestrator's loop becomes very short: read state, pick a vehicle, dispatch
 
 ### Corollary: load-bearing invariants travel with the delegation
 
-Delegation moves work out of the orchestrator's context and into docs, skills, and agents. Each delegation target is a fresh surface where an invariant can be silently dropped (premise 3, coherence drift). Rules whose breach is **silent, cascading, and reachable from more than one surface** must be restated at each surface the work can enter from, not only at the dispatch site.
+Delegation moves work out of the orchestrator's context and into docs, skills, and agents. Each delegation target is a fresh surface where an invariant can be silently dropped (premise 3, coherence drift). Rules whose breach is **silent, cascading, and reachable from more than one surface** must be restated at each surface, not only at the dispatch site.
 
 In this architecture the surfaces are typically three:
 
@@ -169,7 +169,7 @@ Workers defend their own output (premise 1, self-bias) and prefer cheap paths (p
 
 ### Corollary (a): at least two verifiers, more when the signal is noisier
 
-A verifier's verdict is one noisy sample of the underlying quality (premise 4, stochastic error). Independent samples reduce variance and lower the odds that a correlated error goes unchecked; one verifier's report is evidence, not proof. Two is the floor. Add more for steps where the signal is especially noisy, since variance falls roughly as 1/N.
+A verifier's verdict is one noisy sample of the underlying quality (premise 4, stochastic error). Independent samples reduce variance and lower the odds that a correlated error goes unchecked; one verifier's report is evidence, not proof. Two is the floor; add more where the signal is especially noisy, since variance falls as 1/N.
 
 ### Corollary (b): distinct framings
 
@@ -200,7 +200,7 @@ Both are legitimate for routing. Pick based on what the predicate is asking. Ter
 
 ### Corollary (a): runaway loops need a mechanical termination
 
-Any loop that could, in principle, run forever must have at least one mechanical branch on the termination path (a counter, a threshold, a strike limit). An LLM orchestrator will rationalize "one more try" indefinitely if termination depends only on its own judgment (premise 5, path-of-least-resistance). This is the one place LLM judgment alone is insufficient.
+Any loop that could, in principle, run forever must have at least one mechanical branch on the termination path (a counter, a threshold, a strike limit). An LLM orchestrator will rationalize "one more try" indefinitely if termination depends only on its own judgment (premise 5), making this the one place LLM judgment alone is insufficient.
 
 ### Corollary (b): termination triggers when marginal value stops
 

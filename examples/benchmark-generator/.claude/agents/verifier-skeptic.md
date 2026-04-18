@@ -23,6 +23,7 @@ Save to the path given in your prompt:
 # Skeptic verification: <problem id>
 
 **Verdict: PASS / FAIL**
+**Class: <tag, required on FAIL; omit or "none" on PASS>**
 
 ## Suspected weak points
 [from reading the solution]
@@ -33,6 +34,17 @@ Save to the path given in your prompt:
 ## Issues
 [empty if PASS; specific failures if FAIL]
 ```
+
+### Class (closed set)
+
+On FAIL, pick exactly one:
+
+- `wrong_output`: the solution returned a value that disagrees with the expected output derived from the problem statement.
+- `crash`: the solution raised an unhandled error on an adversarial input.
+- `timeout`: the solution did not return within a reasonable bound on an adversarial input.
+- `spec_disagreement`: the solution appears correct by its own logic but contradicts the problem statement (off-by-one in the spec interpretation, wrong output format, etc.).
+
+If none fit, the verdict is not actually a FAIL and you should reconsider. The orchestrator uses this tag to detect stalled loops (same class twice → escalate), so a sloppy tag hides real plateaus.
 
 ## Rules
 

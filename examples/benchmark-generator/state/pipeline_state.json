@@ -5,5 +5,6 @@
   "current_problem_id": null,
   "current_stage": "propose",
   "stuck_count": 0,
+  "recent_reject_classes": [],
   "status": "running"
 }

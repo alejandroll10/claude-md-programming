@@ -16,6 +16,7 @@ Shape:
   "current_problem_id": null,
   "current_stage": "propose",
   "stuck_count": 0,
+  "recent_reject_classes": [],
   "status": "running"
 }
 ```
@@ -98,7 +99,7 @@ Mechanical (§5). The loop ends when any of:
 
 - `problems_completed >= target`: set `status: "complete"`.
 - `stuck_count >= 3`: budget ceiling. Set `status: "stuck"`, write `output/stuck_report.md`, halt.
-- Last two REJECT reasons collide on failure class (same verifier, same issue category in its verdict), delta-based (§5(b) corollary): the feedback isn't moving, so a third attempt is unlikely to. Set `status: "stuck"`, halt.
+- `recent_reject_classes` has length 2 and both entries are equal (same verifier, same class tag), delta-based (§5(b) corollary): the feedback isn't moving, so a third attempt is unlikely to. Set `status: "stuck"`, halt. The verify stage maintains this list: it appends on REJECT (trimming to the last two), and resets to `[]` on ACCEPT. Class tags come from the closed set declared in each verifier's agent definition.
 
 No termination path depends only on LLM judgment. The budget caps pathological loops; the delta check catches loops that keep executing while producing nothing.
 

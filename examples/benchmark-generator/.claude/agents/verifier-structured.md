@@ -24,6 +24,7 @@ Save to the path given in your prompt:
 # Structured verification: <problem id>
 
 **Verdict: PASS / FAIL**
+**Class: <tag, required on FAIL; omit or "none" on PASS>**
 
 ## My solution
 [path or inline code]
@@ -37,6 +38,17 @@ Save to the path given in your prompt:
 ## Issues
 [empty if PASS; specific disagreements if FAIL]
 ```
+
+### Class (closed set)
+
+On FAIL, pick exactly one:
+
+- `submitted_tests_disagree`: submitted solution and yours disagree on an input from the submitted tests.
+- `additional_inputs_disagree`: agreement on the submitted tests, but disagreement on an additional input you constructed.
+- `submitted_tests_wrong`: the submitted tests themselves appear wrong against the problem statement (expected output does not match the specification).
+- `problem_underspecified`: you could not derive a solution because the problem statement is ambiguous or missing constraints.
+
+If none fit, the verdict is not actually a FAIL and you should reconsider. The orchestrator uses this tag to detect stalled loops (same class twice → escalate), so a sloppy tag hides real plateaus.
 
 ## Rules
 

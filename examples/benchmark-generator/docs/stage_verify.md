@@ -20,9 +20,9 @@ Both verifiers run on the same underlying model. Framing-induced independence is
 1. Read `state/pipeline_state.json`. Let `id = current_problem_id`.
 2. Launch `verifier-structured` on `output/solved/<id>/`. Save result to `output/verified/<id>/structured.md`.
 3. Launch `verifier-skeptic` on `output/solved/<id>/problem.md` + `solution.*` (**do not pass** `tests.*`). Save to `output/verified/<id>/skeptic.md`.
-4. Read both verdicts.
-5. On double PASS: move the triple to `output/accepted/<id>/`. Update state: `problems_completed += 1`, `stuck_count = 0`, `current_problem_id = null`, `current_stage = "propose"`. Append a line to `output/history.jsonl`. Commit: `pipeline: accept <id>`.
-6. On any FAIL: keep the verdict logs, drop `output/solved/<id>/`. Update state: `stuck_count += 1`, `current_problem_id = null`, `current_stage = "propose"`. Append a line to `output/history.jsonl`. Commit: `pipeline: reject <id>, <structured>/<skeptic>`.
+4. Read both verdicts. Each failing verdict carries a `class` tag from its declared closed set.
+5. On double PASS: move the triple to `output/accepted/<id>/`. Update state: `problems_completed += 1`, `stuck_count = 0`, `recent_reject_classes = []`, `current_problem_id = null`, `current_stage = "propose"`. Append a line to `output/history.jsonl`. Commit: `pipeline: accept <id>`.
+6. On any FAIL: keep the verdict logs, drop `output/solved/<id>/`. Collect the class tag(s) from the failing verifier(s) into a list `[{verifier, class}, ...]`. Update state: `stuck_count += 1`, append the list to `recent_reject_classes` and trim to the last two entries, `current_problem_id = null`, `current_stage = "propose"`. Append a line to `output/history.jsonl` with the list in `reject_classes`. Commit: `pipeline: reject <id>, <structured>/<skeptic>`.
 
 Steps 2 and 3 are independent and may run in parallel.
 

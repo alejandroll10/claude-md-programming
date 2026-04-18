@@ -173,9 +173,7 @@ A verifier's verdict is one noisy sample of the underlying quality (premise 4, s
 
 ### Corollary (b): distinct framings
 
-The 1/N variance bound in (a) assumes independence. Two verifiers given identical instructions aren't independent. They share the blind spots the instructions force them into. Vary the framing: different postures (structured step-by-step re-derivation vs. skeptical-reader holistic pass), different phrasings of the question, different rubrics on the same target. The less the instructions overlap, the closer to independent the samples get, and the more each additional verifier actually buys.
-
-Framing is the floor, not the ceiling. Two verifiers on the same model still share model-level biases. Anything that reduces correlation beyond framing buys more independence: different models, different tool access, different context window sizes. Use what the budget allows; treat identical-model pairs as "less correlated," not "independent."
+The 1/N variance bound in (a) assumes independence. Two verifiers given identical instructions aren't independent; they share the blind spots the instructions force them into. Vary the framing: different postures (structured step-by-step re-derivation vs. skeptical-reader holistic pass), different phrasings of the question, different rubrics on the same target. The less the instructions overlap, the closer to independent the samples get, and the more each additional verifier actually buys. Framing is the floor; different models, tools, or context sizes reduce correlation further, and same-model pairs should be treated as less correlated, not independent.
 
 ### Corollary (c): at least one free-form
 

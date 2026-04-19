@@ -175,7 +175,7 @@ Workers defend their own output (premise 1, self-bias) and prefer cheap paths (p
 
 ### Corollary (a): at least two verifiers, more when the signal is noisier
 
-Less-correlated samples reduce variance; one verifier's report is evidence, not proof. Two is the floor; add more where the signal is especially noisy. Variance falls as 1/N only in the independent limit (premise 8 says fresh instances approach but don't reach it), so each extra verifier on the same model buys less than the ideal bound.
+Less-correlated samples reduce variance; one verifier's report is evidence, not proof, so two is the floor. Above two, more is monotonically better, with the marginal value rising in signal noise (premise 4) and sample independence (premise 8). Variance falls as 1/N only in the independent limit, so extra verifiers on the same model and framing buy less than the ideal bound.
 
 ### Corollary (b): distinct framings
 

@@ -76,7 +76,7 @@ Each transition must also be written atomically and durably before the next begi
 
 ### Corollary (b): the big-picture graph lives here
 
-The orchestrator needs to know, at a glance, where it sits in the whole pipeline. If knowing "what comes after stage N" requires reading stage N's doc, every routing decision pays for an extra doc read, and the orchestrator can't reason about future stages at all without loading them.
+The orchestrator needs to know, at a glance, where it sits in the whole pipeline. If knowing "what comes after stage N" requires reading stage N's doc, every routing decision pays for an extra doc read, and the orchestrator can't reason about the shape of future stages without loading them.
 
 So the always-loaded CLAUDE.md pays the token cost of the **overall pipeline graph** (the stage list, the gates, the main loops, the escalation table). It does not pay the cost of each stage's procedure. The graph is cheap; procedures are not.
 
@@ -137,7 +137,7 @@ Three vehicles for delegation, ordered by cost and isolation:
 
 - **Docs.** Content the orchestrator reads on demand. Cheapest. Zero isolation: the content lands in the current context. Use for: stage procedures, reference material, content the orchestrator itself needs to act on. Stage docs specify the path, not just the goal. Premise 5 (path-of-least-resistance) fills underspecified paths with shortcuts.
 - **Skills.** Self-contained modules (instructions, often with scripts or tools) that the harness loads on trigger. Lands in whoever is currently running (orchestrator or subagent). Use for: reusable capabilities that multiple workers need (math verification, domain formulas, standard workflows). Pairs especially well with agents: a fresh-context subagent loads only the skill it needs, without polluting the orchestrator.
-- **Agents.** Fresh-context sub-conversations with their own system prompt. Full isolation: capability 8 (fresh-instance independence) is what makes isolation real rather than rhetorical. Use for: work needing independent judgment (premise 1, self-bias), long work that would pollute parent context (premise 2, long-context degradation), parallel execution, or any place stochastic-error re-sampling matters (premise 4, stochastic error).
+- **Agents.** Fresh-context sub-conversations with their own system prompt. Full isolation: capability 8 (fresh instances are less correlated than continuations) is what makes isolation real rather than rhetorical. Use for: work needing independent judgment (premise 1, self-bias), long work that would pollute parent context (premise 2, long-context degradation), parallel execution, or any place stochastic-error re-sampling matters (premise 4, stochastic error).
 
 ### Pick the right vehicle
 

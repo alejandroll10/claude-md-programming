@@ -210,7 +210,7 @@ Any loop that could, in principle, run forever must have at least one mechanical
 
 ### Corollary (b): termination triggers when marginal value stops
 
-A counter caps pathological infinite loops, but the harder case is loops that keep executing while producing nothing (a retry returning the same score, a revision with no new feedback). The mechanical termination should fire when the *next* iteration is unlikely to add value, not only when some absolute ceiling is hit. Two concrete forms: (i) delta-based: escalate when Δ(score, feedback-novelty) falls below a threshold; (ii) budget-based: cap retries at the count where marginal value historically saturates for that loop. Budget is the upfront approximation; delta is the runtime correction.
+A counter caps pathological infinite loops, but the harder case is loops that keep executing while producing nothing (a retry returning the same score, a revision with no new feedback). The mechanical termination should fire when the *next* iteration is unlikely to add value, not only when some absolute ceiling is hit. Three strategies, ordered by how much data they require: (i) a conservative absolute cap when the loop is new and you have neither history nor a clean signal (corollary (a)'s counter, set tight); (ii) a budget cap at the count where marginal value historically saturates for that loop, once you have runs to fit it on; (iii) a delta trigger that escalates when Δ(score, feedback-novelty) falls below a threshold, when the per-iteration signal is reliable enough to threshold. Use the strongest strategy your data supports, and treat early runs as data collection for the next tier.
 
 ### Corollary (c): separate signal retries from noise retries
 

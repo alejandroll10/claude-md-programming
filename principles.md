@@ -216,7 +216,7 @@ A counter caps pathological infinite loops, but the harder case is loops that ke
 
 Long runs accumulate infrastructure failures (premise 10) alongside task-signal failures (premise 4). The two have different remedies: task failures feed termination; infrastructure failures get retried at the dispatch layer. Collapsing them into one counter means a flaky network trips termination on a task the pipeline would otherwise complete, or a genuinely stuck loop hides behind "retry, it was just a blip." Keep two counters: one for signal-driven failures (verifier REJECT, solver gave up, malformed model output); one for noise-driven failures (tool timeout, network blip, infrastructure parse error), bounded separately. The classifier is the *source*, not the surface: an unparseable response from the model is signal even though it surfaces at the parse step; a tool that returns garbage is noise even if downstream code can't tell them apart.
 
-### Corollary (d): LLM-judged inputs don't need schemas
+### Corollary (d): verdicts on hot paths, prose on rare branches
 
 Capability 6 (reads-any-text) means the orchestrator reads any text, and §2 says structure costs tokens without buying safety unless it earns its keep. An enumerated verdict (`PASS/FAIL`, `NOVEL/INCREMENTAL/KNOWN`) is cheap to route on, so it's the default on hot paths (structure that earns its keep). On rare or ambiguous branches, the orchestrator can read the full artifact and decide; no verdict token needed. Verdicts buy efficiency, not correctness.
 

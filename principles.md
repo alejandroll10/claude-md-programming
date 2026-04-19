@@ -206,7 +206,7 @@ Both are legitimate for routing. Pick based on what the predicate is asking. Ter
 
 ### Corollary (a): runaway loops need a mechanical termination
 
-Any loop that could, in principle, run forever must have at least one mechanical branch on the termination path (a counter, a threshold, a strike limit). An LLM orchestrator will rationalize "one more try" indefinitely if termination depends only on its own judgment (premise 5), making this the one place LLM judgment alone is insufficient.
+Any loop that could, in principle, run forever must have at least one mechanical branch on the termination path (a counter, a threshold, a strike limit). An LLM orchestrator will rationalize "one more try" indefinitely if termination depends only on its own judgment (premise 1, self-bias defending prior work; premise 3, drift from earlier stopping conditions).
 
 ### Corollary (b): termination triggers when marginal value stops
 

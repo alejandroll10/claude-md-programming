@@ -214,7 +214,7 @@ A counter caps pathological infinite loops, but the harder case is loops that ke
 
 ### Corollary (c): separate signal retries from noise retries
 
-Long runs accumulate infrastructure failures (premise 10) alongside task-signal failures (premise 4). The two have different remedies: task failures feed termination; infrastructure failures get retried at the dispatch layer. Collapsing them into one counter means a flaky network trips termination on a task the pipeline would otherwise complete, or a genuinely stuck loop hides behind "retry, it was just a blip." Keep two counters: one for signal-driven failures (verifier REJECT, solver gave up); one for noise-driven failures (tool error, parse failure), bounded separately.
+Long runs accumulate infrastructure failures (premise 10) alongside task-signal failures (premise 4). The two have different remedies: task failures feed termination; infrastructure failures get retried at the dispatch layer. Collapsing them into one counter means a flaky network trips termination on a task the pipeline would otherwise complete, or a genuinely stuck loop hides behind "retry, it was just a blip." Keep two counters: one for signal-driven failures (verifier REJECT, solver gave up, malformed model output); one for noise-driven failures (tool timeout, network blip, infrastructure parse error), bounded separately. The classifier is the *source*, not the surface: an unparseable response from the model is signal even though it surfaces at the parse step; a tool that returns garbage is noise even if downstream code can't tell them apart.
 
 ### Corollary (d): LLM-judged inputs don't need schemas
 

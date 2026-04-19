@@ -183,7 +183,7 @@ The 1/N variance bound in (a) assumes independence. Two verifiers given identica
 
 ### Corollary (c): at least one free-form
 
-A numeric score or enumerated verdict is cheap to route on, but easy to game. Two legs to the Goodhart argument: the score is a noisy proxy for latent quality (premise 4, stochastic error), and the model prefers the cheapest path to satisfying it (premise 5, path-of-least-resistance). Optimizing a noisy proxy under pressure diverges from the target. A free-form critique has no single number to climb; its feedback is qualitative and open-ended. Ship both: the structured verdict for routing, the free-form audit for content.
+A numeric score or enumerated verdict is cheap to route on, but easy to game when the worker can see it (retry loops that include prior scores, or workers told the rubric upfront). Two legs to the Goodhart argument: the score is a noisy proxy for latent quality (premise 4, stochastic error), and the model prefers the cheapest path to satisfying a visible target (premise 5, path-of-least-resistance). Optimizing a noisy proxy under pressure diverges from the target. A free-form critique has no single number to climb; its feedback is qualitative and open-ended. Ship both: the structured verdict for routing, the free-form audit for content.
 
 ### Corollary (d): each verifier is framed adversarially
 

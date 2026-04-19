@@ -6,7 +6,7 @@ This document is for **long-running autonomous systems** (pipelines where Claude
 
 ## Premises
 
-Every principle here is derived from structural properties: LLM weaknesses and capabilities that come from the substrate, plus cost properties that bind any real deployment. These aren't bugs a better model will fix or circumstances that will change.
+Every principle here is derived from structural properties: LLM weaknesses and capabilities that come from the substrate, plus cost properties that bind any real deployment. These aren't bugs a better model will fix.
 
 ### Weaknesses
 
@@ -22,7 +22,7 @@ Every principle here is derived from structural properties: LLM weaknesses and c
 
 ### Capabilities
 
-6. **Reads any text.** An LLM makes sense of prose, tables, markdown, JSON, mixed formats, whatever the upstream writer emits. *Consequence:* contracts between components can specify what information must appear, not its exact shape.
+6. **Reads any text.** An LLM makes sense of prose, tables, JSON, and mixed formats. *Consequence:* contracts between components can specify what information must appear, not its exact shape.
 
 7. **Judges open-ended predicates.** Given a well-posed question, an LLM can read an artifact and return a verdict ("is this sound?", "does this meet the criteria?"). *Consequence:* routing and verification aren't limited to mechanical rules over state; they can be semantic.
 
@@ -84,7 +84,7 @@ Local routing (this stage's verdict space, and which stage each verdict points t
 
 ### Corollary (c): CLAUDE.md is not a manual
 
-Stage-by-stage procedures, examples, and edge-case notes are not control flow. They belong in per-stage docs loaded on demand (see §3, Delegate). Inlining them bloats always-on context and triggers long-context degradation (premise 2).
+Stage-by-stage procedures, examples, and edge-case notes are not control flow. They belong in per-stage docs loaded on demand (see §3, Delegate). Inlining them bloats always-on context (premise 2).
 
 ### Corollary (d): CLAUDE.md is not a worker
 
@@ -157,7 +157,7 @@ The orchestrator's loop becomes very short: read state, pick a vehicle, dispatch
 
 ### Corollary: load-bearing invariants travel with the delegation
 
-Delegation moves work out of the orchestrator's context and into docs, skills, and agents. Each delegation target is a fresh surface where an invariant can be silently dropped (premise 3, coherence drift). Not every invariant needs cross-surface restatement; only the subset whose breach is **silent, cascading, and reachable from more than one surface** must be restated at each surface, not only at the dispatch site. This narrower subset is what "load-bearing invariants" refers to throughout.
+Delegation moves work out of the orchestrator's context and into docs, skills, and agents. Each delegation target is a fresh surface where an invariant can be silently dropped (premise 3, coherence drift). Only invariants whose breach is **silent, cascading, and reachable from more than one surface** must be restated at each surface, not only at the dispatch site. This narrower subset is what "load-bearing invariants" refers to throughout.
 
 In this architecture the surfaces are typically three:
 
@@ -175,7 +175,7 @@ Workers defend their own output (premise 1, self-bias) and prefer cheap paths (p
 
 ### Corollary (a): at least two verifiers, more when the signal is noisier
 
-Less-correlated samples reduce variance and lower the odds that a correlated error goes unchecked; one verifier's report is evidence, not proof. Two is the floor; add more where the signal is especially noisy. Variance falls as 1/N only in the independent limit (premise 8 says fresh instances approach but don't reach it), so each extra verifier on the same model buys less than the ideal bound.
+Less-correlated samples reduce variance; one verifier's report is evidence, not proof. Two is the floor; add more where the signal is especially noisy. Variance falls as 1/N only in the independent limit (premise 8 says fresh instances approach but don't reach it), so each extra verifier on the same model buys less than the ideal bound.
 
 ### Corollary (b): distinct framings
 

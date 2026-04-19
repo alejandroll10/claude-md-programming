@@ -72,8 +72,6 @@ CLAUDE.md contains the `while`, the shape of `state`, the high-level pipeline gr
 
 If state is the sole carrier of history, a stale file silently breaks the Markov property. The "current" inputs a stage reads may be leftovers from a prior run. The failure mode sharpens across session boundaries: a crashed-then-resumed run finds previous outputs still sitting in place and will happily consume them as this run's work. Verify intermediate inputs are current (mtime against pipeline-start, or an explicit freshness marker) before consuming.
 
-Each transition must also be written atomically and durably before the next begins. Batching multiple logical transitions into one write leaves the resume point ambiguous after a crash. Git commits, write-ahead logs, and append-only journals all qualify; the principle is the atomicity, not the tool.
-
 ### Corollary (b): the big-picture graph lives here
 
 The orchestrator needs to know, at a glance, where it sits in the whole pipeline. If knowing "what comes after stage N" requires reading stage N's doc, every routing decision pays for an extra doc read, and the orchestrator can't reason about the shape of future stages without loading them.
@@ -102,9 +100,11 @@ Some facts the pipeline depends on describe the *environment*, not the work (whi
 
 ### Corollary (g): resumability is a property, not a feature
 
-A long-running pipeline outlives any single session (premise 10, infrastructure fails). Laptops sleep, processes get killed, tools rate-limit, connections drop. Corollary (a)'s atomic-commit requirement makes resume safe; the remaining design choice is to eliminate the first-run branch entirely by shipping a valid initial state pre-committed. The orchestrator's entry point is then the same on a fresh run and on a resume: read state, and if `status == "running"` with `current_stage` set, continue from there.
+A long-running pipeline outlives any single session (premise 10, infrastructure fails). Laptops sleep, processes get killed, tools rate-limit, connections drop. Stages typically carry non-idempotent side effects (artifact writes, agent dispatches, external API calls) that can't safely be replayed, so each transition must be written atomically and durably before the next begins. Batching multiple logical transitions into one write leaves the resume point ambiguous after a crash. Git commits, write-ahead logs, and append-only journals all qualify; the principle is the atomicity, not the tool.
 
-This in turn demands a property on every stage: its effects must be either committed to state when the transition commit lands, or safely redoable from the post-commit state. A stage that writes artifacts without recording them in state leaves orphans after a crash; one that marks itself complete before finishing silently skips work on resume. The atomic commit is the fence, and each side has to hold up on its own. On resume, the orchestrator should discard any uncommitted working-tree changes left by a crashed stage before continuing; doing so assumes the pipeline runs in a dedicated directory where untracked files are always orphan artifacts, never user work.
+With the atomic commit as the fence, the remaining design choice is to eliminate the first-run branch entirely by shipping a valid initial state pre-committed. The orchestrator's entry point is then the same on a fresh run and on a resume: read state, and if `status == "running"` with `current_stage` set, continue from there.
+
+This in turn demands a property on every stage: its effects must be either committed to state when the transition commit lands, or safely redoable from the post-commit state. A stage that writes artifacts without recording them in state leaves orphans after a crash; one that marks itself complete before finishing silently skips work on resume. On resume, the orchestrator should discard any uncommitted working-tree changes left by a crashed stage before continuing; doing so assumes the pipeline runs in a dedicated directory where untracked files are always orphan artifacts, never user work.
 
 ---
 

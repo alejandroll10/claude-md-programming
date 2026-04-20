@@ -1,6 +1,6 @@
 # claude-md-programming
 
-A design pattern for building autonomous, multi-stage Claude Code pipelines. Not a framework, not a language, but a small set of organizing principles for treating a repository's CLAUDE.md, subagents, skills, and state files as a coherent program.
+Principles and vocabulary for designing autonomous, multi-stage Claude Code pipelines: a repository's CLAUDE.md, subagents, skills, and state files treated as a coherent program.
 
 ## Scope
 

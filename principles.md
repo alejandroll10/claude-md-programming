@@ -110,6 +110,10 @@ This in turn demands a property on every stage: its effects must be either commi
 
 Eliminate the first-run branch by shipping a valid initial state pre-committed. The orchestrator's entry point is then identical on a fresh run and a resume: read state, and if `status == "running"` with `current_stage` set, continue.
 
+### Corollary (i): state schema is declared, not emergent
+
+Premise 3 applies to state's shape, not just invariants over it. An orchestrator asked to "update state" can add fields, rename keys, or retype values; across stages these drifts accumulate until some stage reads a shape no stage explicitly wrote. Declare the schema alongside the pipeline graph. Schema changes are their own transition, not a side effect of a stage.
+
 ---
 
 ## 2. Context is costly

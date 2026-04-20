@@ -42,7 +42,7 @@ If a principle doesn't trace to at least one premise, it's decoration. The mappi
 - §3 ← 1, 2, 3, 4, 5, 6, 8
 - §4 ← 1, 4, 5, 7, 8
 - §5 ← 5, 6, 7, 9, 10
-- §6 ← 9
+- §6 ← 9 (wall-clock)
 
 ---
 

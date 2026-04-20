@@ -90,6 +90,8 @@ Doing the work of a stage (analyzing the artifact, writing the forecast, reviewi
 
 This separation is enforced by discipline, not structure: the orchestrator is itself an LLM and can always reach for stage-level work if the doc doesn't forbid it. State the boundary explicitly, and route stage work outward even when "just reading one file" looks cheaper than spawning an agent.
 
+The orchestrator still decides what requires its privileged position. Routing on verdicts, escalation decisions that weigh past attempts, reading artifacts on rare branches (§5(d)): each depends on run history, graph knowledge, or state the orchestrator already holds, and serializing that to a subagent costs more than it buys. The test is whether the decision depends on information only the orchestrator has. Quality judgment on an artifact fails it: §4(a) still applies. Branching on a pre-declared verdict space passes.
+
 ### Corollary (e): routing state is not observability
 
 Long autonomous runs also produce human-facing artifacts (logs, dashboards, commit messages, process records) so someone outside the loop can monitor, intervene, or learn from the run. This is observability, not state. The orchestrator never reads it to route. Corollary (a)'s freshness requirement doesn't apply; §2's compactness bar doesn't apply. Keep them in separate files with separate budgets: a stale dashboard is ugly, a stale `state.json` silently breaks the Markov property.

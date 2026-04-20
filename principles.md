@@ -154,7 +154,6 @@ The orchestrator's loop becomes very short: read state, pick a vehicle, dispatch
 ### What this rules out
 
 - Inlining procedures, code, or long instructions into CLAUDE.md. The orchestrator's context is not a library.
-- Doing stage work in the orchestrator (see §1(d)).
 - Loading a skill in the orchestrator for work that belongs in a subagent. Skills should land where the work happens, not in the always-on context.
 
 ### Corollary: load-bearing invariants travel with the delegation

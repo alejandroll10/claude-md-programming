@@ -84,7 +84,7 @@ Local routing (this stage's verdict space, and which stage each verdict points t
 
 Stage-by-stage procedures, examples, and edge-case notes are not control flow. They belong in per-stage docs loaded on demand (see §3, Delegate). Inlining them bloats always-on context (premise 2).
 
-### Corollary (d): CLAUDE.md is not a worker
+### Corollary (d): CLAUDE.md routes, doesn't work
 
 Doing the work of a stage (analyzing the artifact, writing the forecast, reviewing the proof) is not control flow. It belongs inside a fresh-context subagent dispatched by the orchestrator. The moment the orchestrator does stage-level work, its context fills with domain material and the failure modes the separation kept at arm's length take hold. The distance that makes routing reliable is gone.
 

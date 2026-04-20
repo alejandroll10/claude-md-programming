@@ -173,25 +173,25 @@ The count is descriptive, not prescriptive: restate at each surface the rule can
 
 Workers defend their own output (premise 1, self-bias) and prefer cheap paths (premise 5, path-of-least-resistance), so self-reports aren't evidence the work got done. And any verdict, from a worker or a verifier, is a noisy sample of the underlying quality (premise 4, stochastic error): one draw isn't enough. Verify everything the orchestrator will route on using other LLMs (capability 7, judges predicates), not the same instance (capability 8, fresh-instance sampling).
 
-### Corollary (a): at least two verifiers, more when the signal is noisier
+### Corollary (a): verification is a distinct stage, not a sub-step
+
+A worker that spawns its own verifier inside its own stage hasn't escaped premise 1 (self-bias). The worker chooses the framing, the inputs, and what to show. The self-bias reaches the verifier through the curation, even though the verifier's context is fresh. Verification must be a stage the orchestrator dispatches separately: inputs come from state (or from artifacts the worker wrote, not selected), framing comes from the stage doc, and the verdict flows back to the orchestrator, not to the worker. The worker never sees the verifier; the orchestrator, not the worker, routes on the verdict.
+
+### Corollary (b): at least two verifiers, more when the signal is noisier
 
 Less-correlated samples reduce variance; one verifier's report is evidence, not proof, so two is the floor. Above two, more is monotonically better, with the marginal value rising in signal noise (premise 4) and sample independence (premise 8). Variance falls as 1/N only in the independent limit, so extra verifiers on the same model and framing buy less than the ideal bound.
 
-### Corollary (b): distinct framings
+### Corollary (c): distinct framings
 
-The 1/N variance bound in (a) assumes independence. Two verifiers given identical instructions aren't independent; they share the blind spots the instructions force them into. Vary the framing: different postures (structured step-by-step re-derivation vs. skeptical-reader holistic pass), different phrasings of the question, different rubrics on the same target. The less the instructions overlap, the closer to independent the samples get, and the more each additional verifier buys. Framing is the floor; different models, tools, or context sizes reduce correlation further.
+The 1/N variance bound in (b) assumes independence. Two verifiers given identical instructions aren't independent; they share the blind spots the instructions force them into. Vary the framing: different postures (structured step-by-step re-derivation vs. skeptical-reader holistic pass), different phrasings of the question, different rubrics on the same target. The less the instructions overlap, the closer to independent the samples get, and the more each additional verifier buys. Framing is the floor; different models, tools, or context sizes reduce correlation further.
 
-### Corollary (c): at least one free-form
+### Corollary (d): at least one free-form
 
 A numeric score or enumerated verdict is cheap to route on, but easy to game when the worker can see it (retry loops that include prior scores, or workers told the rubric upfront). A numeric score is a noisy proxy for latent quality (premise 4), and a visible target invites gaming it (premise 5); optimizing the proxy under pressure diverges from the target. A free-form critique has no single number to climb; its feedback is qualitative and open-ended. Ship both: the structured verdict for routing, the free-form audit for content.
 
-### Corollary (d): each verifier is framed adversarially
+### Corollary (e): each verifier is framed adversarially
 
-A verifier told "check whether this is correct" drifts toward confirming. Premise 1 (self-bias) reaches the verifier through its own instructions, even in a fresh context. State the job as finding errors, not evaluating correctness: the verifier has no loyalty to the work, and its goal is to break it. This is orthogonal to (b): adversarial posture applies per verifier, before any cross-verifier variation.
-
-### Corollary (e): verification is a distinct stage, not a sub-step
-
-A worker that spawns its own verifier inside its own stage hasn't escaped premise 1 (self-bias). The worker chooses the framing, the inputs, and what to show. The self-bias reaches the verifier through the curation, even though the verifier's context is fresh. Verification must be a stage the orchestrator dispatches separately: inputs come from state (or from artifacts the worker wrote, not selected), framing comes from the stage doc, and the verdict flows back to the orchestrator, not to the worker. The worker never sees the verifier; the orchestrator, not the worker, routes on the verdict.
+A verifier told "check whether this is correct" drifts toward confirming. Premise 1 (self-bias) reaches the verifier through its own instructions, even in a fresh context. State the job as finding errors, not evaluating correctness: the verifier has no loyalty to the work, and its goal is to break it. This is orthogonal to (c): adversarial posture applies per verifier, before any cross-verifier variation.
 
 ---
 

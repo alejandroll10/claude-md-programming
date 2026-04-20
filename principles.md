@@ -104,9 +104,11 @@ Some facts the pipeline depends on describe the *environment*, not the work (whi
 
 A long-running pipeline outlives any single session (premise 10, infrastructure fails). Laptops sleep, processes get killed, tools rate-limit, connections drop. Stages carry non-idempotent side effects (artifact writes, agent dispatches, external API calls) that can't safely be replayed, so each transition must commit atomically and durably before the next begins. Batching multiple logical transitions into one write leaves the resume point ambiguous after a crash. Git commits, write-ahead logs, and append-only journals all qualify; the principle is the atomicity, not the tool.
 
-Eliminate the first-run branch by shipping a valid initial state pre-committed. The orchestrator's entry point is then identical on a fresh run and a resume: read state, and if `status == "running"` with `current_stage` set, continue.
-
 This in turn demands a property on every stage: its effects must be either committed to state when the transition commit lands, or safely redoable from the post-commit state. A stage that writes artifacts without recording them in state leaves orphans after a crash; one that marks itself complete before finishing silently skips work on resume. On resume, the orchestrator should discard any uncommitted working-tree changes left by a crashed stage before continuing; doing so assumes the pipeline runs in a dedicated directory where untracked files are always orphan artifacts, never user work.
+
+### Corollary (h): seed a valid initial state
+
+Eliminate the first-run branch by shipping a valid initial state pre-committed. The orchestrator's entry point is then identical on a fresh run and a resume: read state, and if `status == "running"` with `current_stage` set, continue.
 
 ---
 

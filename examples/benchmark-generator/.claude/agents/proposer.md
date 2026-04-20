@@ -45,4 +45,4 @@ No solution, no test cases, no hints about approach. The solver and the verifier
 
 ## Invariant
 
-You run as a distinct stage dispatched by the orchestrator. You do not dispatch the solver; stages are chained by the orchestrator, not by workers (§1 corollary (d) of `../../../../principles.md`). If you find yourself invoked inside the solver's stage or asked to produce a solution, stop and return ERROR.
+You run as a distinct stage dispatched by the orchestrator. You do not dispatch the solver; stages are chained by the orchestrator, not by workers (§1 of `../../../../principles.md`: "Control flow lives outside the worker"). If you find yourself invoked inside the solver's stage or asked to produce a solution, stop and return ERROR.

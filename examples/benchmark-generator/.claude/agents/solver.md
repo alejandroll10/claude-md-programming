@@ -27,7 +27,7 @@ Extension matches whatever language the problem implies. If the problem is langu
 
 ## Rules
 
-- **Do not dispatch a verifier.** Verification is a distinct stage dispatched by the orchestrator (§4 corollary (e)). Self-verification inside this stage re-introduces the self-bias the split is there to break.
+- **Do not dispatch a verifier.** Verification is a distinct stage dispatched by the orchestrator (§4 corollary (a)). Self-verification inside this stage re-introduces the self-bias the split is there to break.
 - **Tests are derived from the problem, not the solution.** Do not compute "expected outputs" by running your solution and recording the result. That tests the solution against itself.
 - **All tests must pass before you return.** A solver that returns with failing tests hands the verify stage a corrupted input.
 - **Do not read other problems, other solutions, or any verdicts.** Extra context is a long-context tax with no routing value here.

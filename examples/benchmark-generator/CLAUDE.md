@@ -16,8 +16,8 @@ Shape:
   "current_problem_id": null,
   "current_stage": "propose",
   "stuck_count": 0,
-  "recent_reject_classes": [],
-  "status": "running"
+  "recent_reject_classes": [],   // list of {verifier, class} sets; max length 2, trimmed on append; reset on ACCEPT
+  "status": "running"            // "running" | "complete" | "stuck"
 }
 ```
 
@@ -42,15 +42,18 @@ Line shape:
 ## Pipeline graph
 
 ```
-┌──── loop while problems_completed < target ────┐
-│                                                │
-│  propose  ──→  solve  ──→  verify              │
-│     ↑                         │                │
-│     ├── REJECT (++stuck) ─────┤                │
-│     └── ACCEPT (++done) ──────┘                │
-│                                                │
-│  if stuck_count >= 3: ESCALATE → terminate     │
-└────────────────────────────────────────────────┘
+┌──── loop while problems_completed < target ─────────┐
+│                                                     │
+│  propose  ──→  solve  ──→  verify                   │
+│     ↑                         │                     │
+│     ├── REJECT (++stuck) ─────┤                     │
+│     └── ACCEPT (++done) ──────┘                     │
+│                                                     │
+│  mechanical exits (→ terminate):                    │
+│    problems_completed >= target   (complete)        │
+│    stuck_count >= 3                (budget ceiling) │
+│    last two reject-class sets equal (delta trigger) │
+└─────────────────────────────────────────────────────┘
 ```
 
 Orchestrator loop (§1):
@@ -83,9 +86,9 @@ Local routing (verdict space within each stage) lives in the stage doc.
 
 Project-specific rules whose silent breach corrupts downstream work. Per §3's delegation corollary, they are stated at each surface: here, in each stage doc, and in each agent definition.
 
-1. **Every accepted triple passes two independent verifiers under distinct framings.** One verifier is a noisy sample (premise 4, stochastic error); identical framings share blind spots (§4 corollaries (a), (b)).
-2. **Verifiers never see the solver's context.** Verification is a distinct stage dispatched by this orchestrator (§4 corollary (e)). The solver does not choose the verifier's framing.
-3. **One commit per stage transition.** Atomic and durable (§1 corollary (a)). Never batch.
+1. **Every accepted triple passes two independent verifiers under distinct framings.** One verifier is a noisy sample (premise 4, stochastic error), so the floor is two (§4 corollary (b)); identical instructions would share blind spots, so the two framings are distinct (§4 corollary (c)).
+2. **Verifiers never see the solver's context, and the solver never sees the verifiers' verdicts.** Verification is a distinct stage dispatched by this orchestrator (§4 corollary (a)). The solver does not choose the verifier's framing; the verdict is a visible target that invites gaming if leaked back (§4 corollary (d)).
+3. **One commit per stage transition.** Atomic and durable (§1 corollary (g)). Never batch.
 
 ## Stages
 
@@ -105,12 +108,12 @@ No termination path depends only on LLM judgment.
 
 ## Resume and self-recovery
 
-**Resume (§1 corollary (g)).** State, artifacts, and the history log are committed together at the end of each loop iteration. On startup, the orchestrator reads `state/pipeline_state.json` and re-enters the loop. If the working tree has uncommitted changes (a crash mid-stage), discard them (`git reset --hard HEAD`) so the stage is re-run cleanly from the prior commit. There is no first-run branch; the first run starts with the committed initial state.
+**Resume (§1 corollary (g)).** State, artifacts, and the history log are committed together at the end of each loop iteration. On startup, the orchestrator reads `state/pipeline_state.json` and re-enters the loop. If the working tree has uncommitted changes (a crash mid-stage), discard them (`git reset --hard HEAD`) so the stage is re-run cleanly from the prior commit. There is no first-run branch; the first run starts with the committed initial state (§1 corollary (h)).
 
 **Self-recovery (§5 corollary (e)).** The REJECT → propose path is the signal-level recovery: a failed triple triggers a new attempt, not an escalation. Termination (budget, delta) is the backstop, not the first response.
 
-Infrastructure failures (tool timeout, rate limit, parse failure) are retried at the dispatch layer: each agent invocation gets up to 3 independent attempts. In the verify stage, the structured and skeptic retry budgets are independent; a timeout on one does not charge the other. These retries do **not** feed `stuck_count` (§5 corollary (c), separating signal and noise counters). A stage emits `ERROR` to the transition table only after its own retry budget is exhausted.
+Infrastructure failures (tool timeout, rate limit, parse failure) are retried at the dispatch layer: each agent invocation gets up to 3 independent attempts. In the verify stage, the structured and skeptic retry budgets are independent; a timeout on one does not charge the other. These retries do **not** feed `stuck_count` (§5 corollary (c), separating signal and noise counters). The noise counter lives per-dispatch in the dispatcher, not in persistent state; only the signal counter (`stuck_count`) is part of the routing state. A stage emits `ERROR` to the transition table only after its own retry budget is exhausted.
 
 ## Commit protocol
 
-One commit per stage transition. Prefix: `pipeline:` for state changes, `artifact:` for stage output. Never batch.
+One commit per stage transition, prefixed `pipeline:` and naming the stage and verdict (e.g., `pipeline: solve 42`, `pipeline: reject 42, structured`). Never batch.

@@ -44,15 +44,15 @@ On FAIL, pick exactly one:
 - `timeout`: the solution did not return within a reasonable bound on an adversarial input.
 - `spec_disagreement`: the solution appears correct by its own logic but contradicts the problem statement (off-by-one in the spec interpretation, wrong output format, etc.).
 
-If none fit, the verdict is not actually a FAIL and you should reconsider. The orchestrator uses this tag to detect stalled loops (same class twice → escalate), so a sloppy tag hides real plateaus.
+If none fit, the verdict is not actually a FAIL and you should reconsider. The orchestrator uses this tag to detect stalled loops (same class twice → halt), so a sloppy tag hides real plateaus.
 
 ## Rules
 
-- **Do not read the submitted tests.** They anchor your search to the cases the submitter already considered, defeating the distinct-framing requirement (§4 corollary (b) of `../../../../principles.md`). If you discover you have been given the tests, stop and return ERROR.
+- **Do not read the submitted tests.** They anchor your search to the cases the submitter already considered, defeating the distinct-framing requirement (§4 corollary (c) of `../../../../principles.md`). If you discover you have been given the tests, stop and return ERROR.
 - **Your "expected" comes from the problem statement, not the solution.** If you compute "expected" by running the solution, you are testing the solution against itself.
 - **Adversarial, not random.** Targeted inputs on suspected weaknesses catch more than random stress.
-- **PASS is a high bar.** You must have tried at least 5 inputs, including edge cases, and found nothing that breaks the solution. Otherwise FAIL.
+- **PASS is a high bar.** Do not return a verdict until you have tried at least 5 inputs including edge cases; keep generating inputs until the floor is met. Then: PASS only if nothing broke; otherwise FAIL with a class from the closed set.
 
 ## Invariant
 
-You run as a distinct stage dispatched by the orchestrator, parallel to but independent from verifier-structured. Your verdict flows back to the orchestrator, not to the solver (§4 corollary (e)). You do not see the other verifier's verdict. If you find yourself invoked in any other configuration, stop and return ERROR.
+You run as a distinct stage dispatched by the orchestrator, parallel to but independent from verifier-structured. Your verdict flows back to the orchestrator, not to the solver (§4 corollary (a)). You do not see the other verifier's verdict. If you find yourself invoked in any other configuration, stop and return ERROR.

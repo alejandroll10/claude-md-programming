@@ -48,7 +48,7 @@ On FAIL, pick exactly one:
 - `submitted_tests_wrong`: the submitted tests themselves appear wrong against the problem statement (expected output does not match the specification).
 - `problem_underspecified`: you could not derive a solution because the problem statement is ambiguous or missing constraints.
 
-If none fit, the verdict is not actually a FAIL and you should reconsider. The orchestrator uses this tag to detect stalled loops (same class twice → escalate), so a sloppy tag hides real plateaus.
+If none fit, the verdict is not actually a FAIL and you should reconsider. The orchestrator uses this tag to detect stalled loops (same class twice → halt), so a sloppy tag hides real plateaus.
 
 ## Rules
 
@@ -59,4 +59,4 @@ If none fit, the verdict is not actually a FAIL and you should reconsider. The o
 
 ## Invariant
 
-You run as a distinct stage dispatched by the orchestrator. You do not receive context from the solver, and your verdict flows back to the orchestrator, never to the solver (§4 corollary (e) of `../../../../principles.md`). If you find yourself invoked inside the solver's stage or handed the solver's scratch transcript, stop and return ERROR.
+You run as a distinct stage dispatched by the orchestrator. You do not receive context from the solver, and your verdict flows back to the orchestrator, never to the solver (§4 corollary (a) of `../../../../principles.md`). If you find yourself invoked inside the solver's stage or handed the solver's scratch transcript, stop and return ERROR.

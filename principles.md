@@ -53,7 +53,7 @@ Given the premises above, two system properties are forced:
 - **State carries history explicitly.** Accumulated context degrades recall (premise 2, long-context degradation), drifts invariants (premise 3, coherence drift), and inherits prior-step biases (premise 1, self-bias). History must live in a compact, explicit state object, not in a growing transcript.
 - **Control flow lives outside the worker.** An LLM routing itself takes shortcuts (premise 5, path-of-least-resistance), forgets its place across long runs (premise 3, coherence drift), and can't neutrally judge its own output (premise 1, self-bias). The routing graph must be structure, not the worker's judgment.
 
-CLAUDE.md is where both live: the state (or a pointer to where state is stored) and the high-level pipeline graph. The orchestrator is itself an LLM session with CLAUDE.md always loaded; each step it reads state, dispatches work to a subagent or loads a doc, updates state, and transitions. Everything that is not control flow and not state belongs somewhere cheaper: a per-stage doc, a skill, a subagent (see §3, Delegate).
+CLAUDE.md is where both live: the state (or a pointer to where state is stored) and the high-level pipeline graph. The orchestrator is itself an LLM session with CLAUDE.md always loaded; each step it reads state, dispatches work to a subagent or loads a doc, updates state, and transitions. Everything that is not control flow or state belongs somewhere cheaper: a per-stage doc, a skill, a subagent (see §3, Delegate).
 
 ### Pseudocode
 
@@ -70,7 +70,7 @@ CLAUDE.md contains the `while`, the shape of `state`, the high-level pipeline gr
 
 ### Corollary (a): state must be fresh
 
-If state is the sole carrier of history, a stale file silently breaks the Markov property. The "current" inputs a stage reads may be leftovers from a prior run. The failure mode sharpens across session boundaries: a crashed-then-resumed run finds previous outputs still sitting in place and will happily consume them as this run's work. Verify intermediate inputs are current (mtime against pipeline-start, or an explicit freshness marker) before consuming.
+If state is the sole carrier of history, a stale file silently breaks the Markov property. The "current" inputs a stage reads may be leftovers from a prior run. The failure mode sharpens across session boundaries: a crashed-then-resumed run finds previous outputs in place and consumes them as this run's work. Verify intermediate inputs are current (mtime against pipeline-start, or an explicit freshness marker) before consuming.
 
 ### Corollary (b): the big-picture graph lives here
 
@@ -100,7 +100,7 @@ Some facts the pipeline depends on describe the *environment*, not the work (whi
 
 ### Corollary (g): resumability is a property, not a feature
 
-A long-running pipeline outlives any single session (premise 10, infrastructure fails). Laptops sleep, processes get killed, tools rate-limit, connections drop. Stages typically carry non-idempotent side effects (artifact writes, agent dispatches, external API calls) that can't safely be replayed, so each transition must be written atomically and durably before the next begins. Batching multiple logical transitions into one write leaves the resume point ambiguous after a crash. Git commits, write-ahead logs, and append-only journals all qualify; the principle is the atomicity, not the tool.
+A long-running pipeline outlives any single session (premise 10, infrastructure fails). Laptops sleep, processes get killed, tools rate-limit, connections drop. Stages carry non-idempotent side effects (artifact writes, agent dispatches, external API calls) that can't safely be replayed, so each transition must commit atomically and durably before the next begins. Batching multiple logical transitions into one write leaves the resume point ambiguous after a crash. Git commits, write-ahead logs, and append-only journals all qualify; the principle is the atomicity, not the tool.
 
 Eliminate the first-run branch by shipping a valid initial state pre-committed. The orchestrator's entry point is then identical on a fresh run and a resume: read state, and if `status == "running"` with `current_stage` set, continue.
 
@@ -112,7 +112,7 @@ This in turn demands a property on every stage: its effects must be either commi
 
 Every always-loaded byte is a bet that its value exceeds its cost, and the cost rises faster than length. The direct cost (premise 9, tokens and time cost) is linear in length, but attention (premise 2, long-context degradation) and drift (premise 3, coherence drift) degrade the reliability of *everything already loaded*. Adding a marginal line taxes the prior content's recall and the prior invariants' hold, so the cost of adding the N+1th line grows with N rather than being constant. Total context cost is therefore superlinear in length. That superlinearity is why "earns its keep" has to be strict: the break-even bar rises as the doc grows.
 
-This makes CLAUDE.md programming a **budget problem**. Every always-loaded byte and every token passed to a subagent is evaluated on:
+This makes CLAUDE.md programming a **budget problem**: every always-loaded byte and every token passed to a subagent is judged on:
 
 1. **Is this load-bearing for *this* step?** If not, it belongs in a deferred doc, not the prompt.
 2. **Is this load-bearing for *every* step?** If yes, it earns a place in CLAUDE.md. If only some, it lives in the relevant stage doc.
@@ -157,7 +157,7 @@ The orchestrator's loop becomes very short: read state, pick a vehicle, dispatch
 
 ### Corollary: load-bearing invariants travel with the delegation
 
-Delegation moves work out of the orchestrator's context and into docs, skills, and agents. Each delegation target is a fresh surface where an invariant can be silently dropped (premise 3, coherence drift). Only invariants whose breach is **silent, cascading, and reachable from more than one surface** must be restated at each surface, not only at the dispatch site. This narrower subset is what "load-bearing invariants" refers to throughout.
+Delegation moves work out of the orchestrator's context and into docs, skills, and agents. Each delegation target is a fresh surface where an invariant can be silently dropped (premise 3, coherence drift). Only invariants whose breach is **silent, cascading, and reachable from more than one surface** must be restated at each surface, not only at the dispatch site. This subset is what "load-bearing invariants" means throughout.
 
 In this architecture the surfaces are typically three:
 
@@ -183,7 +183,7 @@ The 1/N variance bound in (a) assumes independence. Two verifiers given identica
 
 ### Corollary (c): at least one free-form
 
-A numeric score or enumerated verdict is cheap to route on, but easy to game when the worker can see it (retry loops that include prior scores, or workers told the rubric upfront). A numeric score is a noisy proxy for latent quality (premise 4, stochastic error), and a visible target invites the cheapest path to hitting it (premise 5, path-of-least-resistance); optimizing that proxy under pressure diverges from the target. A free-form critique has no single number to climb; its feedback is qualitative and open-ended. Ship both: the structured verdict for routing, the free-form audit for content.
+A numeric score or enumerated verdict is cheap to route on, but easy to game when the worker can see it (retry loops that include prior scores, or workers told the rubric upfront). A numeric score is a noisy proxy for latent quality (premise 4), and a visible target invites gaming it (premise 5); optimizing the proxy under pressure diverges from the target. A free-form critique has no single number to climb; its feedback is qualitative and open-ended. Ship both: the structured verdict for routing, the free-form audit for content.
 
 ### Corollary (d): each verifier is framed adversarially
 
@@ -206,7 +206,7 @@ Both are legitimate for routing; pick based on what the predicate asks. Terminat
 
 ### Corollary (a): runaway loops need a mechanical termination
 
-Any loop that could, in principle, run forever must have at least one mechanical branch on the termination path (a counter, a threshold, a strike limit). An LLM orchestrator will rationalize "one more try" indefinitely if termination depends only on its own judgment (premise 1, self-bias defending prior work; premise 3, drift from earlier stopping conditions).
+Any loop that could run forever must have at least one mechanical branch on the termination path (a counter, a threshold, a strike limit). An LLM orchestrator will rationalize "one more try" indefinitely if termination depends only on its own judgment (premise 1, self-bias defending prior work; premise 3, drift from earlier stopping conditions).
 
 ### Corollary (b): termination triggers when marginal value stops
 

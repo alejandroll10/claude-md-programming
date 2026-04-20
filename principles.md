@@ -34,7 +34,7 @@ Every principle here is derived from structural properties: LLM weaknesses and c
 
 10. **Infrastructure fails independently of the work.** Long autonomous runs accumulate transient failures (tool timeouts, rate limits, malformed outputs from a flake, network blips) that are exogenous to the task signal. *Consequence:* any predicate or counter fed by task signal must distinguish exogenous from endogenous failures, or the downstream decision is noisier than the signal warrants.
 
-Each principle below can be read as a response to these properties (defending against a weakness, leaning on a capability, or trading on the deployment side). If a principle doesn't trace to at least one, it's decoration. The mapping:
+Each principle below responds to these properties: defending against a weakness, leaning on a capability, or trading on the deployment side. If a principle doesn't trace to at least one, it's decoration. The mapping:
 
 - §1 state ← 1, 2, 3, 10
 - §1 control flow ← 1, 3, 5
@@ -110,7 +110,7 @@ This in turn demands a property on every stage: its effects must be either commi
 
 ## 2. Context is costly
 
-Every always-loaded byte is a bet that its value exceeds its cost, and the cost rises faster than length. The direct cost (premise 9, tokens and time cost) is linear in length, but attention (premise 2, long-context degradation) and drift (premise 3, coherence drift) degrade the reliability of *everything already loaded*. Adding a marginal line taxes the prior content's recall and the prior invariants' hold, so the cost of adding the N+1th line grows with N rather than being constant. Total context cost is therefore superlinear in length. That superlinearity is why "earns its keep" has to be strict: the break-even bar rises as the doc grows.
+Every always-loaded byte is a bet that its value exceeds its cost, and the cost rises faster than length. The direct cost is linear in length (premise 9), but attention degradation (premise 2) and coherence drift (premise 3) degrade the reliability of *everything already loaded*. Adding a marginal line taxes the prior content's recall and the prior invariants' hold, so the cost of adding the N+1th line grows with N rather than being constant. Total context cost is therefore superlinear in length. That superlinearity is why "earns its keep" has to be strict: the break-even bar rises as the doc grows.
 
 This makes CLAUDE.md programming a **budget problem**: every always-loaded byte and every token passed to a subagent is judged on:
 
@@ -197,12 +197,12 @@ A worker that spawns its own verifier inside its own stage hasn't escaped premis
 
 ## 5. Termination must be mechanical
 
-The orchestrator is a program. Sequences, if/else, for-loops over agent lists, while-loops, early returns: ordinary control-flow shapes are fair game. The constraint is not on which shapes you can use; it's on the *predicate* that gates each branch, which is one of two kinds:
+The orchestrator is a program. Sequences, if/else, for-loops over agent lists, while-loops, early returns: ordinary control-flow shapes are fair game. The constraint is on the *predicate* gating each branch, not the shape, and is one of two kinds:
 
 - **Mechanical**: predicate evaluated by numeric rules over the state JSON: `if state.errors_plateau_for >= 2: escalate()`.
 - **LLM-judged**: predicate evaluated by the orchestrator itself reading an agent's output and deciding (capability 7, judges predicates). Input format is flexible; see corollary (c).
 
-Both are legitimate for routing; pick based on what the predicate asks. Termination is the exception, as the corollaries make explicit.
+Both are legitimate for routing; pick based on what the predicate asks. Termination is the exception, as the corollaries show.
 
 ### Corollary (a): runaway loops need a mechanical termination
 

@@ -2,7 +2,7 @@
 
 ## Scope
 
-This document is for **long-running autonomous systems** (pipelines where Claude is expected to work for hours or days with no human at the terminal). The design may be overkill for interactive sessions. In an autonomous system, every step must know what to do next without a human to ask; robustness compounds over the run length; and the cost of a silent failure is high because no one is watching.
+This document is for **long-running autonomous systems** (pipelines where Claude is expected to work for hours or days with no human at the terminal). The design may be overkill for interactive sessions. In an autonomous system, every step must know what to do next; robustness compounds over the run length; and silent failures cost more because no one is watching.
 
 ## Premises
 
@@ -53,7 +53,7 @@ Given the premises above, two system properties are forced:
 - **State carries history explicitly.** Accumulated context degrades recall (premise 2, long-context degradation), drifts invariants (premise 3, coherence drift), and inherits prior-step biases (premise 1, self-bias). History must live in a compact, explicit state object, not in a growing transcript.
 - **Control flow lives outside the worker.** An LLM routing itself takes shortcuts (premise 5, path-of-least-resistance), forgets its place across long runs (premise 3, coherence drift), and can't neutrally judge its own output (premise 1, self-bias). The routing graph must be structure, not the worker's judgment.
 
-CLAUDE.md is where both live: the state (or a pointer to where state is stored) and the high-level pipeline graph. The orchestrator is itself an LLM session with CLAUDE.md always loaded; each step it reads state, dispatches work to a subagent (a fresh session with its own context) or loads a doc, updates state, and transitions. Everything that is not control flow and not state belongs somewhere cheaper: a per-stage doc, a skill, a subagent (see §3, Delegate).
+CLAUDE.md is where both live: the state (or a pointer to where state is stored) and the high-level pipeline graph. The orchestrator is itself an LLM session with CLAUDE.md always loaded; each step it reads state, dispatches work to a subagent or loads a doc, updates state, and transitions. Everything that is not control flow and not state belongs somewhere cheaper: a per-stage doc, a skill, a subagent (see §3, Delegate).
 
 ### Pseudocode
 
@@ -102,7 +102,7 @@ Some facts the pipeline depends on describe the *environment*, not the work (whi
 
 A long-running pipeline outlives any single session (premise 10, infrastructure fails). Laptops sleep, processes get killed, tools rate-limit, connections drop. Stages typically carry non-idempotent side effects (artifact writes, agent dispatches, external API calls) that can't safely be replayed, so each transition must be written atomically and durably before the next begins. Batching multiple logical transitions into one write leaves the resume point ambiguous after a crash. Git commits, write-ahead logs, and append-only journals all qualify; the principle is the atomicity, not the tool.
 
-With the atomic commit as the fence, the remaining design choice is to eliminate the first-run branch entirely by shipping a valid initial state pre-committed. The orchestrator's entry point is then the same on a fresh run and on a resume: read state, and if `status == "running"` with `current_stage` set, continue from there.
+Eliminate the first-run branch by shipping a valid initial state pre-committed. The orchestrator's entry point is then identical on a fresh run and a resume: read state, and if `status == "running"` with `current_stage` set, continue.
 
 This in turn demands a property on every stage: its effects must be either committed to state when the transition commit lands, or safely redoable from the post-commit state. A stage that writes artifacts without recording them in state leaves orphans after a crash; one that marks itself complete before finishing silently skips work on resume. On resume, the orchestrator should discard any uncommitted working-tree changes left by a crashed stage before continuing; doing so assumes the pipeline runs in a dedicated directory where untracked files are always orphan artifacts, never user work.
 
@@ -112,7 +112,7 @@ This in turn demands a property on every stage: its effects must be either commi
 
 Every always-loaded byte is a bet that its value exceeds its cost, and the cost rises faster than length. The direct cost (premise 9, tokens and time cost) is linear in length, but attention (premise 2, long-context degradation) and drift (premise 3, coherence drift) degrade the reliability of *everything already loaded*. Adding a marginal line taxes the prior content's recall and the prior invariants' hold, so the cost of adding the N+1th line grows with N rather than being constant. Total context cost is therefore superlinear in length. That superlinearity is why "earns its keep" has to be strict: the break-even bar rises as the doc grows.
 
-This turns CLAUDE.md programming from "write what you want" into a **budget problem**. Every always-loaded byte and every token passed to a subagent is evaluated on:
+This makes CLAUDE.md programming a **budget problem**. Every always-loaded byte and every token passed to a subagent is evaluated on:
 
 1. **Is this load-bearing for *this* step?** If not, it belongs in a deferred doc, not the prompt.
 2. **Is this load-bearing for *every* step?** If yes, it earns a place in CLAUDE.md. If only some, it lives in the relevant stage doc.
@@ -152,7 +152,7 @@ The orchestrator's loop becomes very short: read state, pick a vehicle, dispatch
 ### What this rules out
 
 - Inlining procedures, code, or long instructions into CLAUDE.md. The orchestrator's context is not a library.
-- Doing the work of a stage without spawning an agent for it, on the pretext of "just this once." The pretext always returns.
+- Doing stage work without spawning an agent. The pretext of "just this once" always returns.
 - Loading a skill in the orchestrator for work that belongs in a subagent. Skills should land where the work happens, not in the always-on context.
 
 ### Corollary: load-bearing invariants travel with the delegation
@@ -179,11 +179,11 @@ Less-correlated samples reduce variance; one verifier's report is evidence, not 
 
 ### Corollary (b): distinct framings
 
-The 1/N variance bound in (a) assumes independence. Two verifiers given identical instructions aren't independent; they share the blind spots the instructions force them into. Vary the framing: different postures (structured step-by-step re-derivation vs. skeptical-reader holistic pass), different phrasings of the question, different rubrics on the same target. The less the instructions overlap, the closer to independent the samples get, and the more each additional verifier actually buys. Framing is the floor; different models, tools, or context sizes reduce correlation further.
+The 1/N variance bound in (a) assumes independence. Two verifiers given identical instructions aren't independent; they share the blind spots the instructions force them into. Vary the framing: different postures (structured step-by-step re-derivation vs. skeptical-reader holistic pass), different phrasings of the question, different rubrics on the same target. The less the instructions overlap, the closer to independent the samples get, and the more each additional verifier buys. Framing is the floor; different models, tools, or context sizes reduce correlation further.
 
 ### Corollary (c): at least one free-form
 
-A numeric score or enumerated verdict is cheap to route on, but easy to game when the worker can see it (retry loops that include prior scores, or workers told the rubric upfront). Two legs to the Goodhart argument: the score is a noisy proxy for latent quality (premise 4, stochastic error), and the model prefers the cheapest path to satisfying a visible target (premise 5, path-of-least-resistance). Optimizing a noisy proxy under pressure diverges from the target. A free-form critique has no single number to climb; its feedback is qualitative and open-ended. Ship both: the structured verdict for routing, the free-form audit for content.
+A numeric score or enumerated verdict is cheap to route on, but easy to game when the worker can see it (retry loops that include prior scores, or workers told the rubric upfront). A numeric score is a noisy proxy for latent quality (premise 4, stochastic error), and a visible target invites the cheapest path to hitting it (premise 5, path-of-least-resistance); optimizing that proxy under pressure diverges from the target. A free-form critique has no single number to climb; its feedback is qualitative and open-ended. Ship both: the structured verdict for routing, the free-form audit for content.
 
 ### Corollary (d): each verifier is framed adversarially
 
@@ -202,7 +202,7 @@ The orchestrator is a program. Sequences, if/else, for-loops over agent lists, w
 - **Mechanical**: predicate evaluated by numeric rules over the state JSON: `if state.errors_plateau_for >= 2: escalate()`.
 - **LLM-judged**: predicate evaluated by the orchestrator itself reading an agent's output and deciding (capability 7, judges predicates). Input format is flexible; see corollary (c).
 
-Both are legitimate for routing. Pick based on what the predicate is asking. Termination is the exception, as the corollaries make explicit.
+Both are legitimate for routing; pick based on what the predicate asks. Termination is the exception, as the corollaries make explicit.
 
 ### Corollary (a): runaway loops need a mechanical termination
 
@@ -222,13 +222,13 @@ Capability 6 (reads-any-text) means the orchestrator reads any text, and §2 say
 
 ### Corollary (e): prefer self-recovery to escalation
 
-Mechanical termination is required (corollary (a)); the backstop must exist and must rarely fire. In the regime this doc scopes itself to (no human at the terminal), every escalation imposes a cost on someone who wasn't there. Design the pipeline so cheap self-recovery paths run out before termination fires: a fresh-instance retry (premise 4), a framing swap when the same class repeats, a coarser fallback. The delta predicate in (b) should catch genuine plateaus, not single stochastic misses, and (c)'s signal/noise separation keeps infrastructure noise out of the termination counter.
+Mechanical termination is required (corollary (a)); the backstop must exist and must rarely fire. Every escalation imposes a cost on someone who wasn't there. Design the pipeline so cheap self-recovery paths run out before termination fires: a fresh-instance retry (premise 4), a framing swap when the same class repeats, a coarser fallback. The delta predicate in (b) should catch genuine plateaus, not single stochastic misses, and (c)'s signal/noise separation keeps infrastructure noise out of the termination counter.
 
 ---
 
 ## 6. Parallelize independent dispatches
 
-When two dispatches have no data dependency, run them concurrently. Run quality is unchanged; wall-clock time falls. Traces to premise 9 (tokens and time cost): latency is part of the cost surface, so cutting wall-clock without changing the token load is a pure win.
+When two dispatches have no data dependency, run them concurrently. Run quality is unchanged; wall-clock time falls. Latency is part of premise 9's cost surface, so cutting it without changing token load is a pure win.
 
 Constraint: parallelism is in dispatch, not in state mutation. Parallel branches write distinct keys, or the orchestrator gathers writes after both return. Concurrent writes to the same field race.
 

@@ -96,9 +96,9 @@ The orchestrator still decides what requires its privileged position. Routing on
 
 Long autonomous runs also produce human-facing artifacts (logs, dashboards, commit messages, process records) so someone outside the loop can monitor, intervene, or learn from the run. This is observability, not state. The orchestrator never reads it to route. Corollary (a)'s freshness requirement doesn't apply; §2's compactness bar doesn't apply. Keep them in separate files with separate budgets: a stale dashboard is ugly, a stale `state.json` silently breaks the Markov property.
 
-### Corollary (f): establish environmental ground truth before the loop
+### Corollary (f): environmental ground truth is its own artifact
 
-Some facts the pipeline depends on describe the *environment*, not the work (which data sources exist, which tools have credentials, which services are up). If each stage re-derives or silently assumes these, they drift (premise 3, coherence drift) and fill gaps with shortcuts (premise 5, path-of-least-resistance). Capture them once at pipeline entry in a reference artifact every stage reads. This is a third artifact class beyond routing state and observability: the pipeline consumes it, but the orchestrator doesn't transition on it. If the environment changes mid-run, update the artifact and commit the update. Silent drift in ground truth is worst: every stage downstream inherits the stale assumption.
+Some facts the pipeline reads describe the *environment*, not the work: which data sources exist, which tools have credentials, which services are up. If each stage re-derives them they drift (premise 3, coherence drift) and shortcuts fill the gaps (premise 5, path-of-least-resistance). Capture them once at pipeline entry in a reference artifact every stage reads; this is a third artifact class alongside routing state (§1(e)) and observability, consumed by stages but never routed on.
 
 ### Corollary (g): resumability is a property, not a feature
 

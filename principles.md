@@ -68,8 +68,6 @@ while state.status == "running":
 
 CLAUDE.md contains the `while`, the shape of `state`, the high-level pipeline graph, and the top-level transition table. It does not contain the body of `run_stage` for every stage. Those live in `docs/*.md` and in subagent definitions.
 
-The `while` is figurative. In practice the orchestrator is a single long-running Claude Code session (typically launched with `claude --dangerously-skip-permissions`) that reads state, dispatches, commits, and continues across turns within that session. There is no external scheduler invoking Claude per stage; the loop is the model's behavior given CLAUDE.md, not a wrapper around it.
-
 ### Corollary (a): state must be fresh
 
 If state is the sole carrier of history, a stale file silently breaks the Markov property. The "current" inputs a stage reads may be leftovers from a prior run. The failure mode sharpens across session boundaries: a crashed-then-resumed run finds previous outputs in place and consumes them as this run's work. Verify intermediate inputs are current (mtime against pipeline-start, or an explicit freshness marker) before consuming.
@@ -134,7 +132,7 @@ This makes CLAUDE.md programming a **budget problem**: every always-loaded byte 
 
 Consequences:
 
-- Every line in CLAUDE.md earns its place against this bar. Domain invariants that fire every step pass it; ornamental prose doesn't. "Small" is the usual outcome, not the rule.
+- Every line in CLAUDE.md earns its place against this bar. Domain invariants that fire every step pass it; ornamental prose doesn't.
 - Agents receive minimal inputs: file **paths** rather than file bodies, when the agent can fetch for itself.
 - State is compact. Running details get summarized; raw transcripts don't live in the state JSON.
 - Big-picture graph is the exception that proves the rule (see §1): it's always-on because *every* step needs to know where it sits in the whole.

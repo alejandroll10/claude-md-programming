@@ -6,6 +6,10 @@ Principles and vocabulary for designing autonomous, multi-stage Claude Code pipe
 
 Long-running, unattended pipelines (hours to days without a human at the terminal). Overkill for short interactive sessions.
 
+## Runner
+
+The orchestrator is a single long-running Claude Code session (typically launched with `claude --dangerously-skip-permissions`) that reads state, dispatches, commits, and continues across turns within that session. The `while` loop in `principles.md` is the model's behavior given CLAUDE.md, not an external scheduler invoking Claude per stage.
+
 ## Start here
 
 - [`principles.md`](principles.md): the design pattern. Begin with the premises; every principle derives from at least one.

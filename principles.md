@@ -30,11 +30,11 @@ Every principle here is derived from structural properties: LLM weaknesses and c
 
 ### Deployment
 
-9. **Tokens and time cost.** Every token spent charges dollars and latency; every second of wall-clock charges latency. Costs are linear in the input. *Consequence:* at equal correctness, the cheaper design wins. The superlinear bite (marginal cost of added context rising because premises 2 and 3 make earlier content less reliable) is derived in §2, not assumed here.
+9. **Tokens and time cost.** Every token spent charges dollars and latency; every second of wall-clock charges latency. Costs are linear in the input. *Consequence:* at equal correctness, the cheaper design wins.
 
 10. **Infrastructure fails independently of the work.** Long autonomous runs accumulate transient failures (tool timeouts, rate limits, malformed outputs from a flake, network blips) that are exogenous to the task signal. *Consequence:* any predicate or counter fed by task signal must distinguish exogenous from endogenous failures, or the downstream decision is noisier than the signal warrants.
 
-Each principle below responds to these properties: defending against a weakness, leaning on a capability, or trading on the deployment side. If a principle doesn't trace to at least one, it's decoration. The mapping:
+If a principle doesn't trace to at least one premise, it's decoration. The mapping:
 
 - §1 state ← 1, 2, 3, 10
 - §1 control flow ← 1, 3, 5
@@ -48,7 +48,7 @@ Each principle below responds to these properties: defending against a weakness,
 
 ## 1. The pipeline is a Markov machine with external control flow
 
-Given the premises above, two system properties are forced:
+Two system properties are forced:
 
 - **State carries history explicitly.** Accumulated context degrades recall (premise 2, long-context degradation), drifts invariants (premise 3, coherence drift), and inherits prior-step biases (premise 1, self-bias). History must live in a compact, explicit state object, not in a growing transcript.
 - **Control flow lives outside the worker.** An LLM routing itself takes shortcuts (premise 5, path-of-least-resistance), forgets its place across long runs (premise 3, coherence drift), and can't neutrally judge its own output (premise 1, self-bias). The routing graph must be structure, not the worker's judgment.
@@ -131,7 +131,7 @@ Consequences:
 
 ## 3. Delegate
 
-§1 and §2 together force delegation: the machinery to do the work should not live in the orchestrator's context. It lives somewhere else, loaded or spawned only when needed.
+§1 and §2 together force delegation. The machinery lives somewhere else, loaded or spawned only when needed.
 
 Three vehicles for delegation, ordered by cost and isolation:
 

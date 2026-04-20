@@ -176,7 +176,7 @@ Workers defend their own output (premise 1, self-bias) and prefer cheap paths (p
 
 ### Corollary (a): verification is a distinct stage, not a sub-step
 
-A worker that spawns its own verifier inside its own stage hasn't escaped premise 1 (self-bias). The worker chooses the framing, the inputs, and what to show. The self-bias reaches the verifier through the curation, even though the verifier's context is fresh. Verification must be a stage the orchestrator dispatches separately: inputs come from state (or from artifacts the worker wrote, not selected), framing comes from the stage doc, and the verdict flows back to the orchestrator, not to the worker. The worker never sees the verifier; the orchestrator, not the worker, routes on the verdict.
+Fresh context isn't enough: a worker that spawns its own verifier inside its own stage hasn't escaped premise 1 (self-bias). The worker chooses the framing, the inputs, and what to show. The self-bias reaches the verifier through the curation, even though the verifier's context is fresh. Verification must be a stage the orchestrator dispatches separately: inputs come from state (or from artifacts the worker wrote, not selected), framing comes from the stage doc, and the verdict flows back to the orchestrator, not to the worker. The worker never sees the verifier; the orchestrator, not the worker, routes on the verdict.
 
 ### Corollary (b): at least two verifiers, more when the signal is noisier
 

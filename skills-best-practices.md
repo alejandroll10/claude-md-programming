@@ -14,15 +14,23 @@ Skills span a real range. Pick the shape from the failure modes the skill must p
 | Tool with guidance | Script plus when/how to invoke, anti-triggers | Usage examples, "when NOT to use," output format | Tool the model would otherwise misuse or skip |
 | Workflow | All prose, no script | Step-by-step procedure, scoped invariants | Judgment-heavy task with side effects or invariants |
 
+The shapes mix in practice. A workflow can terminate in a deterministic script call (twitter-reply orchestrates context-loading and reply generation in prose, then ends with `post_slack.py` to publish). The split that matters is per-section: judgment in prose, deterministic ops in scripts. Pick the dominant shape from the failure modes the skill must prevent.
+
 A thin wrapper that should have been a workflow leaks failure modes the skill exists to prevent. A workflow that should have been a thin wrapper bloats the consumer's context with prose the model already knows.
 
 ## Frontmatter: enforcement, not advice
 
-Three levers, ordered by how strongly they restrict invocation:
+The frontmatter controls *when* the skill loads and *what* it can do. Both matter; neither can be enforced from prose.
 
-- **`disable-model-invocation: true`.** The skill cannot auto-trigger. Only the user fires it explicitly. Right answer for skills with side effects the model should not initiate (posting, sending, executing trades). Premise 5 (path-of-least-resistance) would otherwise let the model decide on its own to invoke.
-- **`user-invocable: false`.** Hides the skill from explicit user `/skill` invocation; only consumers (agents, the orchestrator) dispatch it. Use for internal layers in a pipeline whose direct invocation by the user would skip preconditions.
-- **`allowed-tools: ...`.** Capability scoping, same lever as for subagents. A workflow skill that orchestrates reads should not have `Write` access; the prose may say "do not edit" but premise 5 ignores it.
+**`description:` is the trigger predicate.** The harness reads the description and decides whether to auto-load the skill based on whether it matches what the model is currently doing. Real skills write descriptions as predicates ("Use when you need real-time social media sentiment", "Use to CONFIRM claims from web search with timestamps"), not as labels ("Twitter search tool"). Too broad and the skill loads in contexts where it does not apply (the orchestrator's read-state-and-route turn pulls it in for no reason). Too narrow and the consumer never reaches it. Treat the description as the most important field in the file.
+
+**`argument-hint: ...`.** Tells the harness what arguments the skill expects when invoked, surfacing them in the user's `/skill` autocomplete. Use whenever the skill takes a positional argument (a query, a file path, a ticker). Three of the five real skills surveyed use this; absent it, the user has to read the SKILL.md to know what to type.
+
+**`disable-model-invocation: true`.** The skill cannot auto-trigger. Only the user fires it explicitly. Right answer for skills with side effects the model should not initiate (posting, sending, executing trades). Premise 5 (path-of-least-resistance) would otherwise let the model decide on its own to invoke.
+
+**`user-invocable: false`.** Hides the skill from explicit user `/skill` invocation; only consumers (agents, the orchestrator) dispatch it. Use for internal layers in a pipeline whose direct invocation by the user would skip preconditions.
+
+**`allowed-tools: ...`.** Capability scoping, same lever as for subagents (see `subagents-best-practices.md`: tool restriction is enforcement, not advice). A workflow skill that orchestrates reads should not have `Write` access; the prose may say "do not edit" but premise 5 ignores it.
 
 Combine as defense in depth. A workflow skill with side effects often gets `disable-model-invocation: true` *and* `allowed-tools` restriction.
 
@@ -50,4 +58,4 @@ This is the §3 delegation corollary applied to skills: restate the invariant at
 
 ## What this doc does not cover
 
-Claude Code skill mechanics (file layout, frontmatter syntax, allowed-tools enumeration, harness loading rules) belong in the Claude Code docs, not here. This doc covers the pattern-specific choices: what content goes in the skill, how to bound its invocation, and how to resist the failure modes premise 5 keeps producing.
+Claude Code harness internals (file layout on disk, loading order, full frontmatter schema) belong in the Claude Code docs, not here. This doc covers the pattern-specific choices: what content goes in the skill, which frontmatter fields earn the author's attention, and how to resist the failure modes premise 5 keeps producing.

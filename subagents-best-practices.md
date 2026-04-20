@@ -6,19 +6,23 @@ A subagent definition has three layers, and most authoring mistakes come from pu
 
 | Layer | What it controls | Lever |
 |---|---|---|
-| Frontmatter (`tools:`, `model:`) | What the agent *can* do | Capability |
+| Frontmatter (`description:`, `tools:`, `model:`, `skills:`) | What the agent *can* do and when it gets dispatched | Capability and trigger |
 | System prompt | What it does *every* time | Role, invariants, output format |
 | Dispatch prompt | What it does *this* time | Per-call inputs |
 
 ## Layer 1: frontmatter
 
-**Tool restriction is enforcement, not advice.** A verifier with edit access "fixes" the artifact instead of reporting it broken (premise 5, path-of-least-resistance). Writing "do not edit the file" in the system prompt is not the same as withholding the tool. Verifiers get read-only tools; workers do not get the dispatch tool; only the orchestrator's privileged role gets state-mutation access.
+**`description:` is the dispatch trigger, not a label.** The harness uses the description to decide whether to auto-route a task to this agent. Real agents write descriptions as trigger predicates ("Use when verifying a proof for mathematical errors") not human-readable names ("Math verifier"). A description that's too broad pulls the agent into work it shouldn't do; too narrow and the orchestrator never reaches it. This is the dispatch analog of `tools:`: a misconfigured description silently routes wrong, the same way a missing tool silently fails to enforce.
 
-**Model choice is a correlation lever.** Premise 8 (fresh instances are less correlated, not independent) has a floor at the model-level correlation. Two verifiers on the same model share blind spots that distinct framings (§4(c)) can only partially break. Crossing models lowers the floor. If the orchestrator runs Opus, a Haiku verifier and a Sonnet verifier give a real correlation drop a same-model pair can't.
+**Tool restriction is enforcement, not advice.** A verifier with edit access "fixes" the artifact instead of reporting it broken (premise 5, path-of-least-resistance). Writing "do not edit the file" in the system prompt is not the same as withholding the tool. Verifiers get read-only tools; workers do not get the Task tool (or other ability to spawn subagents); only the orchestrator's privileged role gets state-mutation access.
+
+**Model choice is a correlation lever.** Premise 8 (fresh instances are less correlated, not independent) has a floor at the model-level correlation. Two verifiers on the same model share blind spots that distinct framings (§4(c)) can only partially break. Crossing models lowers the floor. If the orchestrator runs Opus, a Haiku verifier and a Sonnet verifier give a real correlation drop a same-model pair can't. The `model:` field is optional; omit it to inherit from the orchestrator, set it explicitly when correlation reduction matters.
+
+**`skills:` attaches capabilities at the frontmatter layer.** When an agent needs a domain skill (math verification, market data, fact-checking), list it in `skills:` rather than expecting the agent to discover it. This makes the dependency explicit and audit-able. See `skills-best-practices.md` for skill authoring; the attachment is a frontmatter concern.
 
 ## Layer 2: system prompt
 
-This is what the agent does on *every* invocation, including invocations from outside the pipeline. Content here must be true regardless of who dispatches.
+This is what the agent does on *every* invocation. If the agent is reachable from outside the pipeline (the default for any file under `.claude/agents/`), content here must be true regardless of who dispatches; see "Reusability across pipelines" below for the pipeline-internal exception.
 
 **Role and output format.** The orchestrator has to parse a verdict to route. If the format is "last line is `VERDICT: ACCEPT|REJECT`" or "writes the verdict to `output/<id>/verdict.json`," it lives here so every dispatch produces it. Format drift breaks routing silently.
 

@@ -15,6 +15,7 @@ The orchestrator is a single long-running Claude Code session (typically launche
 - [`principles.md`](principles.md): the design pattern. Begin with the premises; every principle derives from at least one.
 - [`checklist.md`](checklist.md): the short-form setup checklist for starting a new pipeline, mapped to the principles.
 - [`glossary.md`](glossary.md): one-line definitions for the terms used across the other docs.
+- [`subagents-best-practices.md`](subagents-best-practices.md): operational guidance for authoring `.claude/agents/*.md` workers and verifiers.
 - [`examples/benchmark-generator/`](examples/benchmark-generator/): a worked example translating the principles into concrete CLAUDE.md, state, stage docs, and agent definitions.
 
 ## Status

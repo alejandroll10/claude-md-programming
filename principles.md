@@ -114,6 +114,10 @@ Eliminate the first-run branch by shipping a valid initial state pre-committed. 
 
 Premise 3 applies to state's shape, not just invariants over it. An orchestrator asked to "update state" can add fields, rename keys, or retype values; across stages these drifts accumulate until some stage reads a shape no stage explicitly wrote. Declare the schema alongside the pipeline graph. Schema changes are their own transition, not a side effect of a stage.
 
+### Corollary (j): rollback is a transition, not an edit
+
+Undoing a committed stage (stale input found late, bad artifact, manual revert) must commit atomically like any other transition. Record which artifacts were deleted and which survived; otherwise the next stage can't distinguish stale orphans from reusable upstream outputs, and resume consumes them.
+
 ---
 
 ## 2. Context is costly
@@ -145,7 +149,7 @@ Three vehicles for delegation, ordered by cost and isolation:
 
 - **Docs.** Content the orchestrator reads on demand. Cheapest. Zero isolation: the content lands in the current context. Use for: stage procedures, reference material, content the orchestrator itself needs to act on. Stage docs specify the path, not just the goal. Premise 5 (path-of-least-resistance) fills underspecified paths with shortcuts.
 - **Skills.** Self-contained modules (instructions, often with scripts or tools) that the harness loads on trigger. Lands in whoever is currently running (orchestrator or subagent). Use for: reusable capabilities that multiple workers need (math verification, domain formulas, standard workflows). Pairs especially well with agents: a fresh-context subagent loads only the skill it needs, without polluting the orchestrator.
-- **Agents.** Fresh-context sub-conversations with their own system prompt. Full isolation: capability 8 (fresh instances are less correlated than continuations) is what makes isolation real rather than rhetorical. Use for: work needing independent judgment (premise 1, self-bias), long work that would pollute parent context (premise 2, long-context degradation), parallel execution, or any place stochastic-error re-sampling matters (premise 4, stochastic error).
+- **Agents.** Fresh-context sub-conversations with their own system prompt. Substantial (not total) context isolation: capability 8 (fresh instances are less correlated, not independent) is what makes isolation real rather than rhetorical. Use for: work needing independent judgment (premise 1, self-bias), long work that would pollute parent context (premise 2, long-context degradation), parallel execution, or any place stochastic-error re-sampling matters (premise 4, stochastic error).
 
 ### Pick the right vehicle
 
@@ -230,6 +234,10 @@ Capability 6 (reads-any-text) means the orchestrator reads any text, and §2 say
 ### Corollary (e): prefer self-recovery to escalation
 
 Mechanical termination is required (corollary (a)); the backstop must exist and must rarely fire. Every escalation imposes a cost on someone who wasn't there. Design the pipeline so cheap self-recovery paths run out before termination fires: a fresh-instance retry (premise 4), a framing swap when the same class repeats, a coarser fallback. The delta predicate in (b) should catch genuine plateaus, not single stochastic misses, and (c)'s signal/noise separation keeps infrastructure noise out of the termination counter.
+
+### Corollary (f): graceful degradation is a signal event
+
+A stage that substitutes a weaker input for a missing one (fallback score, cached stand-in, skipped optional check) completes, but on degraded inputs. If the fact lives only in logs, routing treats it like a clean run. Record the downgrade in state and count it against the signal-failure budget (§5(c)). A silent fallback is a broken stage (premise 5, path-of-least-resistance: the cheapest path to "done" is to use whatever's at hand and not mention it).
 
 ---
 

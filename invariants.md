@@ -12,7 +12,7 @@ A **load-bearing invariant** is the subset whose breach is silent, cascading, *a
 
 Four honest sources, in order of how reliable they are:
 
-1. **Incidents.** Something broke, you traced it, you wrote a rule. Rules with an incident attached are load-bearing by construction. Example: a research pipeline whose post-pipeline math audits keep failing learns to require an audit gate before any post-pipeline math edit. The rule names the incident in its body.
+1. **Incidents.** Something broke, you traced it, you wrote a rule. The incident itself proves the breach is silent (it slipped through) and cascading (it had downstream effect); whether it is also reachable from more than one surface is a separate check before placing. Example: a research pipeline whose post-pipeline audits keep failing learns to require an audit gate before any post-pipeline edit. The rule names the incident in its body.
 
 2. **System-property invariants.** Rules that enforce a mechanical property the pattern itself requires: commit atomicity (§1(g)), input freshness (§1(a)), schema integrity (§1(i)). These trace to principle corollaries, not to incidents or model behavior. They look generic ("commit after every transition", "verify input mtime against pipeline-start") because the property they enforce is generic. Interface contracts between components (output JSON validity, verdict-format conformance) belong here too: they are schema integrity at the dispatch boundary.
 
@@ -42,7 +42,7 @@ Some load-bearing invariants are reachable from more than one entry surface. The
 
 - **Entry surface vs detection surface.** If the orchestrator dispatches the worker, the orchestrator and the worker are entry surfaces (either can breach). A verifier that checks the worker's output is a detection surface, not an entry surface. The verifier does not breach the rule; it catches breaches. Detection surfaces do not need the rule restated.
 
-- **Three layers, three breach paths.** A distance-preservation rule (e.g., "forecasts must not reference current holdings") restated only in CLAUDE.md catches orchestrator-driven breaches but misses direct invocations of the forecaster agent. Restated only in the agent it catches direct invocations but misses orchestrator framing. Three layers handle three breach paths: CLAUDE.md (orchestrator dispatch), agent definition (any invocation), and a verifier (detection of breaches the prior layers missed). When you write a multi-surface invariant, name its enforcement layers in the rule body, so future edits do not silently delete one.
+- **Three layers, three breach paths.** A distance-preservation rule (e.g., "the scoring agent must not reference selection-stage outputs") restated only in CLAUDE.md catches orchestrator-driven breaches but misses direct invocations of the scoring agent. Restated only in the agent it catches direct invocations but misses dispatch-prompt framing the orchestrator could leak. Three breach-entry layers handle three breach paths: CLAUDE.md (orchestrator dispatch), the stage doc (the dispatch prompt and procedure for this stage), and the agent definition (any invocation, including outside the pipeline). When you write a multi-surface invariant, name its enforcement layers in the rule body, so future edits do not silently delete one. A verifier that catches breaches of this rule is a separate detection layer (§4); it is not one of the three entry surfaces.
 
 - **The bar.** Restate only when the breach would be silent, cascading, *and* reachable from more than one entry surface. A rule reachable from one entry stays in one place.
 
@@ -50,7 +50,7 @@ Some load-bearing invariants are reachable from more than one entry surface. The
 
 These shapes recur.
 
-**Discrimination invariants.** A rule that forces an explicit choice between two states the model would otherwise collapse. Example: distinguishing "we have decided not to act this cycle" from "we are deferring action to a higher-information moment." The invariant names both states and forces an explicit pick. Premise 5 collapses them unless the discrimination is enforced.
+**Discrimination invariants.** A rule that forces an explicit choice between two states the model would otherwise collapse. Example: distinguishing "the stage chose not to produce an artifact" from "the stage could not produce an artifact yet and will retry on a later trigger." The invariant names both states and forces an explicit pick. Premise 5 collapses them unless the discrimination is enforced.
 
 **Boundary invariants.** A rule that defines the system's edge. "Outputs are recommendations, not executions." "Publish results only after the side effect has confirmed." These are usually short, often safety-related, and always-on (their whole purpose is bounding what the autonomous system is authorized to do).
 

@@ -16,7 +16,7 @@ These two fields together define resumability. A new run reads them and either s
 
 **Mode or variant flag.** When one CLAUDE.md serves multiple flows (a pipeline with both a "quick scan" mode and a "full rebuild" mode), the active flow is a state field. The orchestrator routes on it before consulting `current_stage`.
 
-**Input snapshot with provenance.** Inputs the pipeline captures from outside (a manual seed, a user-supplied target, a drifted-weights vector pulled from an external platform) live in state with three things: the value, the source (where and when it came from), and a consistency check. A `weights` field shipped with `weights_source` (prose attribution) and `weights_total: 100.0` (stages can reject if it does not sum) lets downstream stages fail loudly on a stale or corrupted snapshot. Without provenance, the snapshot is invisible.
+**Input snapshot with provenance.** Inputs the pipeline captures from outside (a manual seed, a user-supplied target, a configuration vector pulled from an external system) live in state with three things: the value, the source (where and when it came from), and a consistency check. A `config` field shipped with `config_source` (prose attribution) and `config_checksum` (or another invariant the stage can validate) lets downstream stages fail loudly on a stale or corrupted snapshot. Without provenance, the snapshot is invisible.
 
 **Sparse fill-as-you-go dicts.** When stages contribute scores, verdicts, or partial results that accumulate across iterations, declare the dict but do not pre-populate keys. Each stage writes its own key. Premise 3 (coherence drift) bites if every stage is asked to "make sure all the keys are there."
 

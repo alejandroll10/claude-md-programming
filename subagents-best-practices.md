@@ -18,7 +18,7 @@ A subagent definition has three layers, and most authoring mistakes come from pu
 
 **Model choice is a correlation lever.** Premise 8 (fresh instances are less correlated, not independent) has a floor at the model-level correlation. Two verifiers on the same model share blind spots that distinct framings (§4(c)) can only partially break. Crossing models lowers the floor. If the orchestrator runs Opus, a Haiku verifier and a Sonnet verifier give a measurable correlation drop a same-model pair can't. The `model:` field is optional; omit it to inherit from the orchestrator, set it explicitly when correlation reduction matters.
 
-**`skills:` attaches capabilities at the frontmatter layer.** When an agent needs a domain skill (math verification, market data, fact-checking), list it in `skills:` rather than expecting the agent to discover it. This makes the dependency explicit and audit-able. See `skills-best-practices.md` for skill authoring; the attachment is a frontmatter concern.
+**`skills:` attaches capabilities at the frontmatter layer.** When an agent needs a domain skill (a verification helper, an external-data fetcher, a fact-checker), list it in `skills:` rather than expecting the agent to discover it. This makes the dependency explicit and audit-able. See `skills-best-practices.md` for skill authoring; the attachment is a frontmatter concern.
 
 ## Layer 2: system prompt
 

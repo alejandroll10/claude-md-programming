@@ -14,15 +14,15 @@ These two fields together define resumability. A new run reads them and either s
 
 **Counter family.** Per-loop counters that feed termination predicates (§5). One counter per loop body, one per escalation stage. Real pipelines accumulate many: `problem_attempt`, `idea_round`, `theory_version`, `referee_round`, `pivot_round`, `stuck_count`, `fix_empirics_rounds`. Each has a budget cap somewhere in CLAUDE.md or a stage doc. Counters reset only on the transition that ends their loop (`stuck_count` resets on ACCEPT, not on any other event). The reset rules belong with the counter declaration so the orchestrator does not invent them per run.
 
-**Mode or variant flag.** When one CLAUDE.md serves multiple flows (autopilot has `daily_scan` vs. `rebalance`), the active flow is a state field. The orchestrator routes on it before consulting `current_stage`.
+**Mode or variant flag.** When one CLAUDE.md serves multiple flows (a pipeline with both a "quick scan" mode and a "full rebuild" mode), the active flow is a state field. The orchestrator routes on it before consulting `current_stage`.
 
-**Input snapshot with provenance.** Inputs the pipeline captures from outside (drifted weights, a manual seed, a user-supplied target) live in state with three things: the value, the source (where and when it came from), and a consistency check. autopilot's `drifted_weights` ships with `drifted_weights_source` (prose attribution) and `drifted_weights_total: 100.0` (stages can reject if it does not sum). Without provenance, a stale or corrupted snapshot is invisible; with it, downstream stages have something to fail loudly on.
+**Input snapshot with provenance.** Inputs the pipeline captures from outside (a manual seed, a user-supplied target, a drifted-weights vector pulled from an external platform) live in state with three things: the value, the source (where and when it came from), and a consistency check. A `weights` field shipped with `weights_source` (prose attribution) and `weights_total: 100.0` (stages can reject if it does not sum) lets downstream stages fail loudly on a stale or corrupted snapshot. Without provenance, the snapshot is invisible.
 
-**Sparse fill-as-you-go dicts.** When stages contribute scores, verdicts, or partial results that accumulate across iterations (token5's `scores`), declare the dict but do not pre-populate keys. Each stage writes its own key. Premise 3 (coherence drift) bites if every stage is asked to "make sure all the keys are there."
+**Sparse fill-as-you-go dicts.** When stages contribute scores, verdicts, or partial results that accumulate across iterations, declare the dict but do not pre-populate keys. Each stage writes its own key. Premise 3 (coherence drift) bites if every stage is asked to "make sure all the keys are there."
 
-**Nullable transitions.** Some fields are meaningfully absent until a stage produces them. token5 carries `pivot_resolved: null` until the puzzle-triage stage emits a verdict. Null is the schema-declared "not yet observed" value; do not conflate with missing keys.
+**Nullable transitions.** Some fields are meaningfully absent until a stage produces them. A `triage_verdict: null` field stays null until the triage stage emits one. Null is the schema-declared "not yet observed" value; do not conflate with missing keys.
 
-**Cross-cycle context.** Pipelines that run repeatedly carry narrative state from one cycle to the next, distinct from append-only history. autopilot's `prior_cycle_context` is one slot, overwritten each cycle with a short prose summary the next cycle's stages can read. Different from the history array: history is append-only and grows; cross-cycle context is a slot that gets replaced.
+**Cross-cycle context.** Pipelines that run repeatedly carry narrative state from one cycle to the next, distinct from append-only history. A `prior_cycle_context` slot, overwritten each cycle with a short prose summary the next cycle's stages can read, is one shape. Different from the history array: history is append-only and grows; cross-cycle context is a slot that gets replaced.
 
 ## Pointers, not bodies
 
@@ -30,12 +30,12 @@ State holds *paths and identifiers*, not the artifacts they point to. `current_p
 
 ## The history-array tension
 
-Both real pipelines have a `history` array of `{timestamp, event/step, summary}`. This is borderline observability vs. routing. The principle (§1 corollary (e)) says routing state and observability are separate; if `history` is in routing state but no stage routes on it, it is miscategorized. Two clean resolutions:
+A common shape is a `history` array of `{timestamp, event/step, summary}` carried inside the state file. This is borderline observability vs. routing. The principle (§1 corollary (e)) says routing state and observability are separate; if `history` is in routing state but no stage routes on it, it is miscategorized. Two clean resolutions:
 
 - **Move it out.** Append events to `output/history.jsonl` (the example does this). Routing state stays compact.
-- **Earn its place.** Keep `history` in state only if a stage actually routes on it (e.g., the resume logic reads the most recent entry to find where it crashed, or a termination predicate reads the last N entries to detect a stalled loop). Otherwise it's observability dressed as state.
+- **Earn its place.** Keep `history` in state only if a stage actually routes on it (e.g., the resume logic reads the most recent entry to find where it crashed, or a termination predicate reads the last N entries to detect a stalled loop). Otherwise it is observability dressed as state.
 
-Real pipelines often blur this because the convenience of one file is real and the cost of two files is small. Be deliberate: if `history` is in state, name which stage routes on it.
+Pipelines often blur this because the convenience of one file is real and the cost of two files is small. Be deliberate: if `history` is in state, name which stage routes on it.
 
 ## What never goes in state
 
@@ -55,7 +55,7 @@ If a field would benefit from being grep-able or human-readable in a dashboard b
 
 **Routing state as audit log.** If you find yourself appending entries to state for "completeness," the entries belong in observability.
 
-**Bare values without provenance for external inputs.** A `drifted_weights` field with no source attribution looks identical whether it's fresh or three days stale. Provenance is what lets a stage reject corruption.
+**Bare values without provenance for external inputs.** An external-input field with no source attribution looks identical whether it is fresh or three days stale. Provenance is what lets a stage reject corruption.
 
 ## Schema as a transition
 

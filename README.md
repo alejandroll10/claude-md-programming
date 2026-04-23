@@ -23,7 +23,8 @@ The orchestrator is a single long-running Claude Code session (typically launche
 - [`state-schema-patterns.md`](state-schema-patterns.md): patterns for shaping the routing-state JSON, distilled from production pipelines.
 - [`invariants.md`](invariants.md): identifying load-bearing rules, placing them at the right surface, and restating across surfaces when breach is multi-path.
 - [`scaffold/`](scaffold/): copy-paste starter skeleton (stub CLAUDE.md, initial state, template stage doc, template worker and verifier agents). Not a worked example; a blank frame to fill in.
-- [`examples/benchmark-generator/`](examples/benchmark-generator/): a worked example translating the principles into concrete CLAUDE.md, state, stage docs, and agent definitions.
+- [`examples/benchmark-generator/`](examples/benchmark-generator/): first worked example. Single-mode closed-world loop with two verifiers and a delta termination trigger.
+- [`examples/scheduled-curator/`](examples/scheduled-curator/): second worked example. Exercises multi-mode, user-input stage, domain ledger, preflight/post-check, script vehicle, and correction-aware verifier verdicts.
 
 ## Status
 

@@ -6,9 +6,9 @@
 
 Tracked in `state/pipeline_state.json`. Read at session start; update after every stage transition; commit every update atomically (§1 corollary (g) of `../principles.md`).
 
-Shape:
+Shape (inline comments are documentation; strip them from the actual JSON file):
 
-```json
+```jsonc
 {
   "current_stage": "<stage_a>",
   "status": "running",
@@ -25,7 +25,7 @@ Observability (one JSONL line per transition) is appended to `output/history.jso
 
 ### Environmental ground truth (delete if closed-world)
 
-<If the pipeline reads external data, credentials, or services, capture them once at pipeline entry in a reference artifact every stage reads (§1 corollary (f)). Declare the artifact path and what it contains here. Delete this subsection if the pipeline is closed-world.>
+<If the pipeline reads external data, credentials, or services, capture them once at pipeline entry in a reference artifact every stage reads (§1 corollary (f)). The reference artifact lives in its own file, not in `pipeline_state.json`; stages read it but never route on it. Declare the artifact path and what it contains here. Delete this subsection if the pipeline is closed-world.>
 
 - Reference artifact: `<path>`, <one-line description>.
 

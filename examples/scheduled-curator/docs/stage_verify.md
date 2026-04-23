@@ -42,9 +42,7 @@ Closed set of per-verifier verdicts: `PASS`, `SOFT-FAIL`, `HARD-FAIL`. The stage
 
 ## Delta trigger bookkeeping
 
-On `SOFT-FAIL`: compare the class set with the prior round's class set for this item (stored implicitly in `state.soft_fail_streak[id]` as a count of consecutive same-class rounds). If the current class set equals the prior round's class set, the streak holds; otherwise reset the streak to 1. When `soft_fail_streak[id] >= 2`, the orchestrator drops the item per `docs/mode_full.md` (delta trigger, §5 corollary (b)).
-
-The orchestrator, not the verifier stage, computes the streak. The verify stage only reports the current round's class set.
+The verify stage's only responsibility is reporting the current round's class set (see the combining rule above). Streak accounting is the orchestrator's, and the authoritative rule lives in `docs/mode_full.md`, "Streak accounting". Do not duplicate it here.
 
 ## Verdict space
 
@@ -61,3 +59,5 @@ Per `docs/mode_full.md`. The orchestrator computes the stage verdict by combinin
 
 1. **Verifiers do not see each other's framings, verdicts, or critiques** (CLAUDE.md invariant 2). The dispatch prompt to each is independent; neither can reference the other.
 2. **Find errors, do not confirm correctness.** Each verifier agent's system prompt declares this (§4 corollary (e)); the stage doc re-states it here because the dispatch prompt is a second surface the rule can be breached from.
+3. **Verify input freshness against `pipeline_started_at`** (CLAUDE.md invariant 4). The preflight block requires the draft's mtime to exceed this round's dispatch-start, which is stricter than `pipeline_started_at` and subsumes it.
+4. **One commit per stage transition, atomic and durable** (CLAUDE.md invariant 5). Applies here as elsewhere.

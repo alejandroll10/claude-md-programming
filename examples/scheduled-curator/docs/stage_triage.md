@@ -38,4 +38,5 @@ Per `docs/mode_scan.md`. Either verdict terminates the run.
 
 ## Restated invariants
 
-- **Freshness anchor is `pipeline_started_at`.** Scan mode does not re-confirm the queue file; the preflight freshness check is the only defense against consuming a stale file (§1 corollary (a)).
+1. **Freshness anchor is `pipeline_started_at`** (CLAUDE.md invariant 4). Scan mode does not re-confirm the queue file; the preflight freshness check is the only defense against consuming a stale file (§1 corollary (a)).
+2. **One commit per stage transition, atomic and durable** (CLAUDE.md invariant 5). Scan mode is short, but the commit discipline is identical.

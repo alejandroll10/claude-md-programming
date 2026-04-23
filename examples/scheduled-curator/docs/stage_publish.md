@@ -34,7 +34,7 @@ If any fail: emit `ERROR`.
    - **Delta trigger** (`soft_fail_streak[id] >= 2`): emit `DROPPED`. Write a ledger entry with `decision: "dropped_delta"`.
    - **Otherwise:** proceed to format + publish.
 
-3. **Apply corrections if SOFT-FAIL.** Read each verifier's `corrections` list; apply each as a textual substitution to the draft, producing `output/<date>/published/<item_id>.md`. Record the applied corrections in the ledger entry's `corrections_applied` field (provenance for §3's correction-aware pattern requirement: see `../../subagents-best-practices.md`, "Verifier verdict spaces").
+3. **Apply corrections if SOFT-FAIL.** Read each verifier's `corrections` list; apply each as a textual substitution to the draft, producing `output/<date>/published/<item_id>.md`. Record the applied corrections in the ledger entry's `corrections_applied` field for provenance (see `../../subagents-best-practices.md`, "Verifier verdict spaces").
 
 4. **Run formatter (script vehicle).** Dispatch `scripts/format_validator.py`:
 
@@ -83,3 +83,5 @@ If any fail: signal failure, do not transition.
 1. **Rate check precedes publish.** The ledger consult is not optional; publishing past the rate limit corrupts the constraint the ledger exists to enforce (CLAUDE.md invariant 3).
 2. **Every publish decision writes exactly one ledger entry**, including rate-limited and dropped. Silent absence corrupts future rate queries.
 3. **Corrections are recorded in the ledger with provenance.** Per `../../subagents-best-practices.md`, "Verifier verdict spaces": when a downstream consumer applies corrections without recording them, provenance is lost.
+4. **Verify input freshness against `pipeline_started_at`** (CLAUDE.md invariant 4). The preflight block enforces this for draft and verifier outputs.
+5. **One commit per stage transition, atomic and durable** (CLAUDE.md invariant 5). The ledger append and the state write commit together; a ledger entry without the corresponding state transition (or vice versa) corrupts resume.

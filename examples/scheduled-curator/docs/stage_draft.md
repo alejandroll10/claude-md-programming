@@ -48,3 +48,5 @@ Per `docs/mode_full.md`.
 ## Restated invariants
 
 1. **The drafter never sees verifier verdicts or critiques from prior rounds** (CLAUDE.md invariant 1). The dispatch prompt carries only the original queue item, even on a HARD-FAIL redraft.
+2. **Verify input freshness against `pipeline_started_at`** (CLAUDE.md invariant 4). The preflight block above enforces this; a stale queue file would silently taint every item.
+3. **One commit per stage transition, atomic and durable** (CLAUDE.md invariant 5). The orchestrator commits after this stage returns; do not batch across items.

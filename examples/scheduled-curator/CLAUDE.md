@@ -113,10 +113,10 @@ Mechanical (§5). No termination path depends only on LLM judgment.
 - `status = complete` when:
   - `scan` mode: `triage` returns.
   - `full` mode: `items_completed >= len(queue.item_ids)`.
-- `status = stuck` when any of:
-  - `hard_fail_count[id] >= 2` for an item: drop that item (append `decision: "dropped_hard_fail"` to ledger), continue loop; only `stuck` if this is the last item and nothing else completes.
-  - `soft_fail_streak[id] >= 2`: delta trigger (same class SOFT-FAIL twice); drop item, append `decision: "dropped_delta"` to ledger, continue.
-  - Any stage returns `ERROR` after its own dispatch-layer retries exhaust.
+- Per-item drops (loop continues after each; not termination on their own):
+  - `hard_fail_count[id] >= 2` for an item: drop the item, append `decision: "dropped_hard_fail"` to ledger, advance `current_item_id`.
+  - `soft_fail_streak[id] >= 2`: delta trigger (same-class SOFT-FAIL twice); drop the item, append `decision: "dropped_delta"` to ledger, advance.
+- `status = stuck` when any stage returns `ERROR` after its dispatch-layer retries exhaust. A run in which every item is dropped still completes normally (`status = complete`) once `items_completed >= len(item_ids)`; drops count as processed.
 
 Self-recovery (§5 corollary (e)): in-pipeline recovery paths (HARD-FAIL → re-draft, SOFT-FAIL → publish-with-corrections) run out before termination fires. Fresh-instance retries on parse failure (noise) happen at the dispatch layer and do not count toward `hard_fail_count` or `soft_fail_streak` (§5 corollary (c)).
 

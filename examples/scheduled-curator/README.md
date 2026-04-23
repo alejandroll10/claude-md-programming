@@ -12,7 +12,7 @@ Second worked example. Complements `../benchmark-generator/` by exercising patte
 - **Preflight / post-check bookends.** Every stage doc shows explicit input freshness checks and output validation (`../../stages-best-practices.md`, "Preflight / post-check bookends").
 - **Script vehicle.** `publish` stage dispatches `scripts/format_validator.py` directly (`../../principles.md` §3, "Scripts").
 - **Correction-aware verifier verdict space.** `verify` emits `PASS` / `SOFT-FAIL` / `HARD-FAIL`; the `publish` stage consumes SOFT-FAIL corrections without re-dispatching the drafter (`../../subagents-best-practices.md`, "Verifier verdict spaces").
-- **Graceful degradation recorded as signal (§5(f)).** When the queue input is missing, the `intake` stage records a `fallback_used` marker and counts against the signal-failure budget rather than silently defaulting.
+- **Graceful degradation recorded as signal (§5(f)).** When the queue input is missing, the `intake` stage records a `fallback_used` marker and emits `ERROR` rather than silently completing an empty run.
 
 ## What `benchmark-generator` already covers (and this example does not re-demonstrate)
 

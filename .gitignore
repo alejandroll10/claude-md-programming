@@ -12,3 +12,6 @@ Thumbs.db
 .env.*.local
 
 .claude/settings.local.json
+
+__pycache__/
+*.pyc

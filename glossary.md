@@ -22,11 +22,16 @@ One-line definitions for terms used across `principles.md`, `checklist.md`, and 
 - **Environmental ground truth.** The external-world facts a reference artifact carries. Distinct from routing state and observability (§1 corollary (f)).
 - **Teardown artifact.** Record of what was deleted and what was preserved when a committed stage is intentionally rolled back. Lets resume distinguish stale orphans from reusable upstream outputs (§1 corollary (j)).
 - **Freshness check (freshness marker).** Per-stage test that an intermediate input is current for this run (mtime against pipeline-start, or an explicit marker written at entry). Without it, a resumed run silently consumes prior-run outputs (§1 corollary (a)).
-- **Atomic commit.** State, artifacts, and observability log committed together in one durable write per stage transition, so a crash leaves the resume point unambiguous (§1 corollary (g)).
+- **Atomic commit.** State, artifacts, and observability log committed together in one durable write per stage transition, so a crash leaves the resume point unambiguous (§1 corollary (g)). On multi-host runs, "durable" includes visibility to peer hosts (push, shared store) not just local persistence.
+- **Domain ledger.** Append-only file of domain facts stages both write to and read from for constraint queries (rolling-window budgets, catalyst presence, consecutive-decision rules). Fourth artifact class alongside routing state, observability, and reference artifacts (`state-schema-patterns.md`).
+- **Preflight / post-check.** The two mechanical gates bookending every stage body: preflight verifies upstream inputs are fresh and well-formed before dispatch; post-check verifies this stage's outputs before the transition commits (`patterns.md`).
+- **Mode.** Routing-state field selecting which top-level transition table applies, when one CLAUDE.md serves multiple flows. Set once per run, never changed mid-run (`patterns.md`, `state-schema-patterns.md`).
+- **User-input stage.** Declared stage that blocks for a human-supplied value and records it (with provenance) to routing state. Not a side-effect of another stage (`patterns.md`).
 
 ## Delegation vehicles
 
 - **Doc.** Content the orchestrator reads on demand. Lands in the current context. Cheapest, zero isolation (§3).
+- **Script.** Deterministic code invoked directly by the orchestrator or an agent. No model tokens during execution; no coherence drift inside the call (§3).
 - **Skill.** Self-contained module (instructions plus tools or scripts) loaded by the harness on trigger. Lands in whoever is currently running (§3).
 - **Agent (fresh-context subagent).** Sub-conversation with its own system prompt, whose context starts empty apart from that prompt and its inputs. Substantial (not total) context isolation from the parent: samples are less correlated, not independent (§3, premise 8).
 - **Worker.** Generic term for the agent dispatched to do a stage's work, as distinct from verifier agents. A solver, proposer, or any producer of the stage's artifact (§3).

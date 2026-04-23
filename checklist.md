@@ -7,13 +7,15 @@ A sequence of decisions for starting a new pipeline, each mapped to the principl
 - [ ] List the stages, in order. Each stage is a single subagent dispatch with a clear verdict space.
 - [ ] Write the transition table: `(from_stage, verdict) → next_stage`. Include an `ERROR` row.
 - [ ] Draw the graph in CLAUDE.md. The orchestrator needs the whole shape at a glance (§1 corollary (b)).
+- [ ] If the pipeline has multiple flows selected by trigger phrase, declare the `mode` enum and the trigger-to-mode table in CLAUDE.md. Each mode has its own transition table; `current_stage` is interpreted within the active mode (`patterns.md`, "Multi-mode orchestrators").
+- [ ] List any stages that block on human-supplied input. They are declared stages with their own transition-table entries, not side-effects of other stages (`patterns.md`, "User-input stages").
 
 ## 2. State shape (§1 corollary (i), §2)
 
 - [ ] Declare the JSON schema alongside the graph. Routing fields only. No transcripts, no accumulated logs.
 - [ ] Commit a valid initial state at setup so the first run and a resume take the same code path (§1 corollary (h)).
 - [ ] Decide where observability goes (JSONL log, dashboard, commit messages). Never in routing state (§1 corollary (e)).
-- [ ] Specify the freshness check each stage runs before consuming intermediate inputs: mtime against pipeline-start, or an explicit freshness marker. Without this, a resumed run silently consumes prior-run outputs (§1 corollary (a)).
+- [ ] Specify the freshness check each stage runs before consuming intermediate inputs: mtime against pipeline-start, or an explicit freshness marker. Without this, a resumed run silently consumes prior-run outputs (§1 corollary (a)). Pair with a per-stage output post-check; see `patterns.md`, "Preflight / post-check bookends" for the dual pattern.
 
 ## 3. Environmental ground truth (§1 corollary (f))
 
@@ -29,10 +31,10 @@ A sequence of decisions for starting a new pipeline, each mapped to the principl
 
 For each stage:
 
-- [ ] Pick the vehicle: **doc** (orchestrator acts on it), **skill** (capability the worker loads), **agent** (fresh-context subagent).
+- [ ] Pick the vehicle: **doc** (orchestrator acts on it), **script** (deterministic code, no model judgment at run time), **skill** (capability the worker loads), **agent** (fresh-context subagent). See §3's table.
 - [ ] Default to agent for anything that produces the stage's artifact. Orchestrator routes, doesn't work (§1 corollary (d)).
 - [ ] If a skill is used by this stage, confirm it loads inside the dispatched agent, not in the orchestrator (§3).
-- [ ] Write the stage doc. It owns the local verdict space and the outgoing edges.
+- [ ] Write the stage doc. It owns the local verdict space, the outgoing edges, and the per-stage preflight (upstream inputs) and post-check (this stage's outputs). See `patterns.md`, "Preflight / post-check bookends".
 
 ## 6. Verification gates (§4)
 
@@ -45,6 +47,7 @@ For each stage whose output the orchestrator routes on:
 - [ ] Confirm verifiers do not see each other's rubrics or verdicts (§4 corollary (c): identical instructions and shared signals correlate their samples).
 - [ ] If a worker retries, confirm it does not see prior rounds' scores or verdicts. A visible target invites gaming (§4 corollary (d)).
 - [ ] For each stage's verdict space, decide which branches the orchestrator routes on as enumerated verdicts (hot paths, default) and which it reads the full artifact on (rare branches). Verdicts buy efficiency, not correctness (§5 corollary (d)).
+- [ ] If verifier errors can be consumed as corrections by a downstream stage without re-dispatching the producer, declare a correction-aware verdict space (`PASS` / `SOFT-FAIL` / `HARD-FAIL`); otherwise stick with binary. See `patterns.md`, "Correction-aware verifier verdict spaces".
 
 ## 7. Termination (§5)
 

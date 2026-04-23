@@ -24,7 +24,7 @@ A subagent definition has three layers, and most authoring mistakes come from pu
 
 This is what the agent does on *every* invocation. If the agent is reachable from outside the pipeline (the default for any file under `.claude/agents/`), content here must be true regardless of who dispatches; see "Reusability across pipelines" below for the pipeline-internal exception.
 
-**Role and output format.** The orchestrator has to parse a verdict to route. If the format is "last line is `VERDICT: ACCEPT|REJECT`" or "writes the verdict to `output/<id>/verdict.json`," it lives here so every dispatch produces it. Format drift breaks routing silently.
+**Role and output format.** The orchestrator has to parse a verdict to route. If the format is "last line is `VERDICT: ACCEPT|REJECT`" or "writes the verdict to `output/<id>/verdict.json`," it lives here so every dispatch produces it. Format drift breaks routing silently. The verdict space is a design choice: binary (`ACCEPT` / `REJECT`) is the default; a correction-aware space (`PASS` / `SOFT-FAIL` / `HARD-FAIL`) fits when errors are local and a downstream stage can apply corrections without the producer rerunning (see `patterns.md`, "Correction-aware verifier verdict spaces").
 
 **Restated invariants (§3 delegation corollary).** Restate the invariants whose breach is reachable from *this* agent's actions, not all of them. A solver needs "never read prior verifier verdicts." A verifier needs "find errors, do not confirm." A proposer needs "do not template off rejected ideas." The agent definition is one of three surfaces an invariant can enter from (CLAUDE.md, stage doc, agent definition); restate where it can be breached, not everywhere.
 

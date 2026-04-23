@@ -12,7 +12,7 @@ A subagent definition has three layers, and most authoring mistakes come from pu
 
 ## Layer 1: frontmatter
 
-**`description:` is the dispatch trigger, not a label.** The harness uses the description to decide whether to auto-route a task to this agent. Real agents write descriptions as trigger predicates ("Use when verifying a proof for mathematical errors") not human-readable names ("Math verifier"). A description that's too broad pulls the agent into work it shouldn't do; too narrow and the orchestrator never reaches it. This is the dispatch analog of `tools:`: a misconfigured description silently routes wrong, the same way a missing tool silently fails to enforce.
+**`description:` is the dispatch trigger, not a label.** The harness uses the description to decide whether to auto-route a task to this agent. Effective descriptions are written as trigger predicates ("Use when verifying a proof for mathematical errors") not human-readable names ("Math verifier"). A description that's too broad pulls the agent into work it shouldn't do; too narrow and the orchestrator never reaches it. This is the dispatch analog of `tools:`: a misconfigured description silently routes wrong, the same way a missing tool silently fails to enforce.
 
 **Tool restriction is enforcement, not advice.** A verifier with edit access "fixes" the artifact instead of reporting it broken (premise 5, path-of-least-resistance). Writing "do not edit the file" in the system prompt is not the same as withholding the tool. Verifiers get read-only tools; workers do not get the Task tool (or other ability to spawn subagents); only the orchestrator's privileged role gets state-mutation access.
 

@@ -1,4 +1,6 @@
 {
   "current_stage": "<stage_a>",
-  "status": "running"
+  "status": "running",
+  "pipeline_started_at": null,
+  "fallback_used": null
 }

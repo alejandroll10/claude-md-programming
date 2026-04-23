@@ -12,6 +12,8 @@ Shape:
 {
   "current_stage": "<stage_a>",
   "status": "running",
+  "pipeline_started_at": null,        // ISO 8601 UTC, set at first stage entry; freshness anchor for §1(a)
+  "fallback_used": null,               // non-null when a stage substituted a weaker input (§5 corollary (f))
   "<counter_name>": 0,
   "<other_routing_field>": null
 }
@@ -19,7 +21,13 @@ Shape:
 
 <Declare every routing field here. Do not add fields in stages without declaring a schema change (§1 corollary (i)). For reference artifacts, domain ledgers, and observability, use separate files (see `../state-schema-patterns.md`).>
 
-Observability (one JSONL line per transition) is appended to `output/history.jsonl`, not stored in routing state (§1 corollary (e)). The orchestrator never reads it for routing. If `history` must stay in routing state (e.g., its first entry is the freshness anchor for §1(a) per `../state-schema-patterns.md`), declare it above.
+Observability (one JSONL line per transition) is appended to `output/history.jsonl`, not stored in routing state (§1 corollary (e)). The orchestrator never reads it for routing.
+
+### Environmental ground truth (delete if closed-world)
+
+<If the pipeline reads external data, credentials, or services, capture them once at pipeline entry in a reference artifact every stage reads (§1 corollary (f)). Declare the artifact path and what it contains here. Delete this subsection if the pipeline is closed-world.>
+
+- Reference artifact: `<path>`, <one-line description>.
 
 ## Pipeline graph
 
@@ -52,6 +60,14 @@ Top-level transitions:
 
 Local routing (the verdict space within each stage) lives in the stage doc.
 
+### User-input stages (delete if none)
+
+<If any stage blocks on a human-supplied value, declare it as a first-class stage here with its own transition-table entries. Not a side-effect of another stage. See `../stages-best-practices.md` "User-input stages".>
+
+### Parallelism (§6)
+
+<Identify stage dispatches that have no data dependency and run them concurrently. Concurrent writes to the same state field race; parallel branches must write distinct keys or be gathered after all return.>
+
 ## Load-bearing invariants
 
 Rules whose silent breach corrupts downstream work. Per `../invariants.md`, list only rules that are silent, cascading, and reachable from more than one entry surface. Restate at each surface the rule can enter from; see `../invariants.md` "Multi-surface restatement" and "From incident to rule" for placement and wording.
@@ -81,6 +97,8 @@ No termination path depends only on LLM judgment. See §5 corollary (b) for stra
 **Self-recovery (§5 corollary (e)).** <Name the in-pipeline recovery path (e.g., REJECT → retry, fresh-instance on parse failure). Termination is the backstop, not the first response.>
 
 Infrastructure failures (tool timeout, rate limit, parse failure) are retried at the dispatch layer (bounded, e.g., 3 attempts per dispatch). These retries do **not** feed the signal-failure counter (§5 corollary (c), separating signal and noise).
+
+**Graceful degradation (§5 corollary (f)).** A stage that substitutes a weaker input for a missing one must record the downgrade in `state.fallback_used` and count it against the signal-failure counter. A silent fallback is a broken stage.
 
 ## Commit protocol
 

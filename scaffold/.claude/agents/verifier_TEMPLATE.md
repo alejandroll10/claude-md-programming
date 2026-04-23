@@ -6,6 +6,8 @@ tools: Read  # verifiers get read-only tools. A verifier with edit access fixes 
 
 <If pipeline-internal only, state so on this line.>
 
+> **Two verifiers minimum.** §4 corollary (b) requires at least two verifiers per gated stage, with distinct framings (§4 corollary (c)). Copy this template once per verifier (e.g., `verifier-structured.md` and `verifier-skeptic.md`) and pick a different posture under "Framing" in each. One verifier is not enough.
+
 ## Role
 
 Adversarial verifier for <artifact type>. **A pass means you exhausted attack vectors and found nothing, not that you read it and it seemed fine.** Your job is to find errors.

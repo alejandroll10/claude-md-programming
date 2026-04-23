@@ -14,7 +14,7 @@
 Before dispatch, verify every input:
 
 - Exists.
-- `mtime > pipeline_state.history[0].timestamp` (freshness anchor; §1 corollary (a), `../stages-best-practices.md`).
+- `mtime > pipeline_state.pipeline_started_at` (freshness anchor; §1 corollary (a), `../stages-best-practices.md`).
 - <Schema / size / content predicate appropriate to the artifact. Not just existence: empty files pass existence.>
 
 If any fail: STOP, re-run the producing stage. Do not dispatch.

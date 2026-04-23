@@ -2,7 +2,7 @@
 
 How to author the `.claude/skills/<name>/SKILL.md` files (and their scripts) that workers and the orchestrator load on trigger. Read `principles.md` first; this doc is operational, not foundational.
 
-A skill is a self-contained capability the harness loads when triggered. Per §3, it lands in whoever is currently running, so the placement question is: which agent or stage needs it, and does the skill's description trigger only there?
+A skill is a self-contained capability the harness loads when triggered. Per §3, it lands in whoever is currently running, so the placement question is: which agent or stage needs it, and does the skill's description scope the trigger to that context?
 
 ## The spectrum
 

@@ -6,6 +6,7 @@ Full-mode only.
 
 ## Inputs
 
+- `state/pipeline_state.json` (reads `current_item_id`, `queue.path`, `soft_fail_prior_class_set` for the orchestrator's delta-trigger comparison).
 - `output/<date>/drafts/<current_item_id>.md`.
 - Queue item (the original, from `state.queue.path`, to give verifiers the original intent).
 

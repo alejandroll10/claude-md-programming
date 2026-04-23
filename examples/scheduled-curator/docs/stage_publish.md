@@ -6,6 +6,7 @@ Full-mode only.
 
 ## Inputs
 
+- `state/pipeline_state.json` (reads `current_item_id`, `hard_fail_count`, `soft_fail_streak`, `queue.path`).
 - `output/<date>/drafts/<current_item_id>.md` (the accepted draft).
 - `output/<date>/verify/<current_item_id>_*.json` (the verifier outputs; used for correction lists when stage verdict was SOFT-FAIL).
 - `state/release_ledger.jsonl` (append-only; read for the rolling-window query).

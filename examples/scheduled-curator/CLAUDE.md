@@ -121,7 +121,7 @@ Mechanical (§5). No termination path depends only on LLM judgment.
 
 Self-recovery (§5 corollary (e)): in-pipeline recovery paths (HARD-FAIL → re-draft, SOFT-FAIL → publish-with-corrections) run out before termination fires. Fresh-instance retries on parse failure (noise) happen at the dispatch layer and do not count toward `hard_fail_count` or `soft_fail_streak` (§5 corollary (c)).
 
-**Graceful degradation (§5 corollary (f)).** If the `intake` stage finds no queue file when the user expected one, it records `fallback_used = "empty_queue"` in state and emits `ERROR` rather than silently completing. A silent empty run is a broken stage.
+**Hard stop on missing input.** If the `intake` stage finds no queue file when the user expected one, it records `fallback_used = "empty_queue"` in state and emits `EMPTY_QUEUE` (see `docs/mode_full.md` for the routing; the verdict routes to `status = stuck`). A silent empty run is a broken stage. This is the discipline of not silently defaulting; it is distinct from §5 corollary (f)'s graceful-degradation-that-continues pattern, which this example does not exercise.
 
 ## Resume and self-recovery
 

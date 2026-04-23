@@ -12,7 +12,7 @@ Shape (inline comments are documentation; strip them from the actual JSON file):
 {
   "current_stage": "<stage_a>",
   "status": "running",
-  "pipeline_started_at": null,        // ISO 8601 UTC, set at first stage entry; freshness anchor for §1(a)
+  "pipeline_started_at": null,        // ISO 8601 UTC, set at launch before the first stage runs; freshness anchor for §1(a)
   "fallback_used": null,               // non-null when a stage substituted a weaker input (§5 corollary (f))
   "<counter_name>": 0,
   "<other_routing_field>": null

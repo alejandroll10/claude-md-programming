@@ -1,0 +1,18 @@
+{
+  "mode": null,
+  "current_stage": null,
+  "status": "not_started",
+  "pipeline_started_at": null,
+  "queue": {
+    "path": null,
+    "source": null,
+    "checksum": null,
+    "confirmed_at": null,
+    "item_ids": []
+  },
+  "current_item_id": null,
+  "items_completed": 0,
+  "soft_fail_streak": {},
+  "hard_fail_count": {},
+  "fallback_used": null
+}

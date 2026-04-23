@@ -1,0 +1,20 @@
+[
+  {
+    "id": "announce-0001",
+    "category": "announcement",
+    "text": "The library has moved to a new package namespace; legacy imports continue to work for 90 days.",
+    "sources": ["https://example.invalid/changelog/0.42.0"]
+  },
+  {
+    "id": "deprecation-0002",
+    "category": "deprecation-notice",
+    "text": "The synchronous bulk-fetch API is scheduled for removal in the 1.0 release; a streaming replacement is available.",
+    "sources": ["https://example.invalid/docs/bulk-fetch-deprecation"]
+  },
+  {
+    "id": "feature-0003",
+    "category": "new-feature",
+    "text": "A streaming bulk-fetch API is available, replacing the synchronous variant.",
+    "sources": ["https://example.invalid/docs/streaming-bulk-fetch"]
+  }
+]

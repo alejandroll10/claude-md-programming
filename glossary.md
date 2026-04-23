@@ -25,7 +25,7 @@ One-line definitions for terms used across `principles.md`, `checklist.md`, and 
 - **Atomic commit.** State, artifacts, and observability log committed together in one durable write per stage transition, so a crash leaves the resume point unambiguous (§1 corollary (g)). On runs that may resume on a different machine, "durable" includes visibility to the other machines (push, shared store), not just local persistence.
 - **Domain ledger.** Append-only file of domain facts stages both write to and read from for constraint queries (rolling-window budgets, catalyst presence, consecutive-decision rules). Fourth artifact class alongside routing state, observability, and reference artifacts (`state-schema-patterns.md`).
 - **Preflight / post-check.** The two mechanical gates bookending every stage body: preflight verifies upstream inputs are fresh and well-formed before dispatch; post-check verifies this stage's outputs before the transition commits (`patterns.md`).
-- **Mode.** Routing-state field selecting which top-level transition table applies, when one CLAUDE.md serves multiple flows. Set once per run, never changed mid-run (`patterns.md`, `state-schema-patterns.md`).
+- **Mode.** Routing-state field selecting which top-level transition table applies, when one CLAUDE.md serves multiple flows. Set once per run, never changed mid-run (`state-schema-patterns.md`, "Mode or variant flag").
 - **User-input stage.** Declared stage that blocks for a human-supplied value and records it (with provenance) to routing state. Not a side-effect of another stage (`patterns.md`).
 
 ## Delegation vehicles

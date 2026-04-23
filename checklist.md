@@ -7,7 +7,7 @@ A sequence of decisions for starting a new pipeline, each mapped to the principl
 - [ ] List the stages, in order. Each stage is a single subagent dispatch with a clear verdict space.
 - [ ] Write the transition table: `(from_stage, verdict) → next_stage`. Include an `ERROR` row.
 - [ ] Draw the graph in CLAUDE.md. The orchestrator needs the whole shape at a glance (§1 corollary (b)).
-- [ ] If the pipeline has multiple flows selected by trigger phrase, declare the `mode` enum and the trigger-to-mode table in CLAUDE.md, each mode with its own transition table (`patterns.md`, "Multi-mode orchestrators").
+- [ ] If the pipeline has multiple flows selected by trigger phrase, declare the `mode` enum and the trigger-to-mode table in CLAUDE.md, each mode with its own transition table (`state-schema-patterns.md`, "Mode or variant flag").
 - [ ] List any stages that block on human-supplied input. They are declared stages with their own transition-table entries, not side-effects of other stages (`patterns.md`, "User-input stages").
 
 ## 2. State shape (§1 corollary (i), §2)
@@ -47,7 +47,7 @@ For each stage whose output the orchestrator routes on:
 - [ ] Confirm verifiers do not see each other's rubrics or verdicts (§4 corollary (c): identical instructions and shared signals correlate their samples).
 - [ ] If a worker retries, confirm it does not see prior rounds' scores or verdicts. A visible target invites gaming (§4 corollary (d)).
 - [ ] For each stage's verdict space, decide which branches the orchestrator routes on as enumerated verdicts (hot paths, default) and which it reads the full artifact on (rare branches). Verdicts buy efficiency, not correctness (§5 corollary (d)).
-- [ ] If verifier errors can be consumed as corrections by a downstream stage without re-dispatching the producer, declare a correction-aware verdict space (`PASS` / `SOFT-FAIL` / `HARD-FAIL`); otherwise stick with binary. See `patterns.md`, "Correction-aware verifier verdict spaces".
+- [ ] If verifier errors can be consumed as corrections by a downstream stage without re-dispatching the producer, declare a correction-aware verdict space (`PASS` / `SOFT-FAIL` / `HARD-FAIL`); otherwise stick with binary. See `subagents-best-practices.md`, "Verifier verdict spaces".
 
 ## 7. Termination (§5)
 

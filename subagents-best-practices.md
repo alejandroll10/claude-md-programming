@@ -24,7 +24,7 @@ A subagent definition has three layers, and most authoring mistakes come from pu
 
 This is what the agent does on *every* invocation. If the agent is reachable from outside the pipeline (the default for any file under `.claude/agents/`), content here must be true regardless of who dispatches; see "Reusability across pipelines" below for the pipeline-internal exception.
 
-**Role and output format.** The orchestrator has to parse a verdict to route. If the format is "last line is `VERDICT: ACCEPT|REJECT`" or "writes the verdict to `output/<id>/verdict.json`," it lives here so every dispatch produces it. Format drift breaks routing silently. The verdict space is a design choice: binary (`ACCEPT` / `REJECT`) is the default; a correction-aware space (`PASS` / `SOFT-FAIL` / `HARD-FAIL`) fits when errors are local and a downstream stage can apply corrections without the producer rerunning (see `patterns.md`, "Correction-aware verifier verdict spaces").
+**Role and output format.** The orchestrator has to parse a verdict to route. If the format is "last line is `VERDICT: ACCEPT|REJECT`" or "writes the verdict to `output/<id>/verdict.json`," it lives here so every dispatch produces it. Format drift breaks routing silently. The verdict space is itself a design choice; see "Verifier verdict spaces" below.
 
 **Restated invariants (§3 delegation corollary).** Restate the invariants whose breach is reachable from *this* agent's actions, not all of them. A solver needs "never read prior verifier verdicts." A verifier needs "find errors, do not confirm." A proposer needs "do not template off rejected ideas." The agent definition is one of three surfaces an invariant can enter from (CLAUDE.md, stage doc, agent definition); restate where it can be breached, not everywhere.
 
@@ -57,3 +57,30 @@ Most authoring failures are content in the wrong layer. Three patterns to watch 
 An agent file under `.claude/agents/` is reachable by any session in the directory, including ad-hoc invocations outside the pipeline. The system prompt is the only thing that travels with the agent. If a load-bearing invariant lives only at the dispatch site (the stage doc or the orchestrator's dispatch code), it does not apply to ad-hoc invocations. If the agent is intended to be reused outside the pipeline, the invariants it must always honor belong in the system prompt, not at the dispatch site.
 
 If the agent is pipeline-internal only, the system prompt can lean on the dispatch context. Make this explicit in the agent file's first line so a future reader does not invoke it standalone and get unexpected behavior.
+
+## Verifier verdict spaces
+
+The canonical §4 picture has verifiers emitting a binary `ACCEPT` / `REJECT`. Some verifier stages instead emit enumerated corrections that a downstream consumer applies without re-dispatching the producer:
+
+- `PASS`: no errors found.
+- `SOFT-FAIL`: errors found; the verifier enumerated them; a downstream aggregator or consumer applies the corrections.
+- `HARD-FAIL`: errors severe enough that the producer must rerun with explicit feedback.
+
+When the extra verdict earns its place:
+
+- The producer's output is expensive to regenerate (a multi-agent forecast, a long analysis, a several-thousand-token research doc).
+- The errors are local and mechanical (a wrong date, a broken identifier, a misapplied unit, a citation to a stale source).
+- A downstream stage already integrates multiple inputs, and consuming corrections is cheaper than re-dispatching.
+
+When it does not:
+
+- If the "correction" would change the artifact's conclusions, it is not a correction. Verdict is `HARD-FAIL`; the producer reruns.
+- If the consumer applies corrections without recording which were applied, provenance is lost. The downstream artifact must list what was changed (ledger pattern; see `state-schema-patterns.md`, "Domain ledgers").
+
+Invariants this verdict space needs:
+
+- **The verifier does not apply its own corrections.** §4 corollary (a) separation: the verifier enumerates, the downstream stage applies. A verifier that also edits the artifact re-imports self-bias (premise 1) by forcing its own interpretation of the fix.
+- **HARD-FAIL retry budget is bounded** (§5 corollary (a)). Two strikes per producer-verifier pair is a common budget; after that, escalate rather than loop.
+- **SOFT-FAIL counts toward the delta trigger** (§5 corollary (b), §5 corollary (c)). Two consecutive rounds producing the same class of SOFT-FAIL on the same producer is a stalled loop wearing the mask of progress; terminate or escalate.
+
+Compared to binary: the extra verdict buys cycle-level efficiency when corrections are genuinely local. It is not a substitute for the §4 gate. The verifier still runs in a fresh context, is still framed adversarially, and still emits a structured verdict plus a free-form critique.

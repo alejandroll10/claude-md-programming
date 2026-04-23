@@ -33,16 +33,37 @@ State holds *paths and identifiers*, not the artifacts they point to. `current_p
 A common shape is a `history` array of `{timestamp, event/step, summary}` carried inside the state file. This is borderline observability vs. routing. The principle (§1 corollary (e)) says routing state and observability are separate; if `history` is in routing state but no stage routes on it, it is miscategorized. Two clean resolutions:
 
 - **Move it out.** Append events to `output/history.jsonl` (the example does this). Routing state stays compact.
-- **Earn its place.** Keep `history` in state only if a stage actually routes on it (e.g., the resume logic reads the most recent entry to find where it crashed, or a termination predicate reads the last N entries to detect a stalled loop). Otherwise it is observability dressed as state.
+- **Earn its place.** Keep `history` in state only if a stage actually routes on it. Common reasons it earns the slot: resume logic reads the most recent entry to find where it crashed; a termination predicate reads the last N entries to detect a stalled loop; the first entry's timestamp is the freshness-check anchor (§1(a)) every downstream stage compares input mtimes against, so deleting it breaks the freshness protocol. Any of those makes `history` a routing-state field with an observability side-benefit, not observability misfiled. If none apply, it is observability dressed as state.
 
 Pipelines often blur this because the convenience of one file is genuine and the cost of two files is small. Be deliberate: if `history` is in state, name which stage routes on it.
+
+## Domain ledgers
+
+Some pipelines carry an append-only ledger of domain facts, distinct from routing state and from observability. A trade-history ledger, a dispatch log consulted for rate limiting, a decision journal read to enforce "no two consecutive X without a new Y". Stages both append entries and read past entries to compute constraints; the orchestrator routes on derived quantities (a rolling-window sum, a "most-recent-N" scan, a presence check for a catalyst tag).
+
+This is a fourth artifact class alongside routing state (§1(e)), observability (§1(e)), and reference artifacts (§1(f)). It differs from each:
+
+- **Not routing state.** It grows unboundedly with run length, which violates §2's compactness bar for the file read every transition. Routing state consults it through a derived query, not by loading the whole file.
+- **Not observability.** Stages do route on it. §1(e)'s "never read to route" rule does not apply.
+- **Not a reference artifact.** It is written *by* the pipeline over time, not captured once at entry.
+
+Patterns:
+
+- **Append-only, never rewritten.** A stage appends one entry per transition of interest; prior entries are immutable. Premise 3 (coherence drift) bites if the ledger is mutable: a retroactive rewrite makes last run's story look better, and downstream constraints compute on fiction.
+- **Schema per entry is closed.** Every entry conforms to a declared per-entry shape, the same way routing state has a schema (§1 corollary (i)). A stage that needs a new field declares a schema change, not a one-off entry.
+- **Derived queries live in the stage that needs them.** The rolling-window sum, the "last two entries equal" test, the "most-recent catalyst" lookup belong in the stage doc that routes on them. Do not copy the ledger into routing state; compute over the ledger and route on the scalar.
+- **Provenance per entry.** Who wrote it, when, what decision, what verdict. Without provenance a ledger is rows later stages cannot reason about.
+
+**When a ledger is the right shape.** Constraints of the form "this kind of event can happen at most N times per window" or "this kind of event requires that other event to precede it". A counter in routing state loses the per-event detail those constraints need.
+
+**When it is not.** A pure counter with no per-event metadata belongs in routing state. Ledgers earn their cost only when queries on individual entries matter.
 
 ## What never goes in state
 
 - Transcripts of agent conversations.
 - Full artifact contents (paths only).
 - Free-form prose longer than a one-line summary.
-- Anything that could grow unboundedly with run length.
+- Anything that could grow unboundedly with run length. If you need an append-only domain history to route on, split it into a separate ledger file (see "Domain ledgers" above).
 - Anything only observability reads (see the history tension above).
 
 If a field would benefit from being grep-able or human-readable in a dashboard but no stage routes on it, that field belongs in an observability log, not state.

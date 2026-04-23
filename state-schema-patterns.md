@@ -1,6 +1,6 @@
 # State schema: patterns
 
-How to shape the routing-state JSON for a pipeline. Read `principles.md` first; this doc is a pattern catalog, not foundations. The principles call routing state "compact, no transcripts, schema declared, not emergent" (§1, §1 corollary (i), §2). That's necessary but not sufficient for designing the actual fields. This doc fills the gap with patterns from real pipelines.
+How to shape the routing-state JSON for a pipeline. Read `principles.md` first; this doc is a pattern catalog, not foundations. The principles call routing state "compact, no transcripts, schema declared, not emergent" (§1, §1 corollary (i), §2). That is necessary but not sufficient for designing the fields. This doc fills the gap with patterns from production pipelines.
 
 ## Required fields (every pipeline has these)
 
@@ -35,7 +35,7 @@ A common shape is a `history` array of `{timestamp, event/step, summary}` carrie
 - **Move it out.** Append events to `output/history.jsonl` (the example does this). Routing state stays compact.
 - **Earn its place.** Keep `history` in state only if a stage actually routes on it (e.g., the resume logic reads the most recent entry to find where it crashed, or a termination predicate reads the last N entries to detect a stalled loop). Otherwise it is observability dressed as state.
 
-Pipelines often blur this because the convenience of one file is real and the cost of two files is small. Be deliberate: if `history` is in state, name which stage routes on it.
+Pipelines often blur this because the convenience of one file is genuine and the cost of two files is small. Be deliberate: if `history` is in state, name which stage routes on it.
 
 ## What never goes in state
 

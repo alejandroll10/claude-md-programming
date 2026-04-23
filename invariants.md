@@ -6,7 +6,7 @@ Half the work in a production pipeline is invariants: the numbered rules in CLAU
 
 An **invariant** is a rule that must hold across more than one moment in the pipeline, whose breach would corrupt downstream work even if no one noticed at the time. The breach is *silent* (no immediate error) and *cascading* (downstream stages consume the corruption).
 
-A **load-bearing invariant** is the subset that is also reachable from more than one surface. The third condition is what triggers multi-surface restatement (§3 delegation corollary, glossary). Most invariants are not load-bearing; they live in one place. The bar for restatement is high.
+A **load-bearing invariant** is the subset whose breach is silent, cascading, *and* reachable from more than one surface. The third condition is what triggers multi-surface restatement (§3 delegation corollary, glossary). Most invariants are not load-bearing; they live in one place. The bar for restatement is high.
 
 ## Where invariants come from
 
@@ -14,7 +14,7 @@ Four honest sources, in order of how reliable they are:
 
 1. **Incidents.** Something broke, you traced it, you wrote a rule. Rules with an incident attached are load-bearing by construction. Example: a research pipeline whose post-pipeline math audits keep failing learns to require an audit gate before any post-pipeline math edit. The rule names the incident in its body.
 
-2. **System-property invariants.** Rules that enforce a mechanical property the pattern itself requires: commit atomicity (§1(g)), input freshness (§1(a)), schema integrity (§1(i)). These trace to principle corollaries, not to incidents or model behavior. They look generic ("commit after every transition", "verify input mtime against pipeline-start") because the property they enforce is generic.
+2. **System-property invariants.** Rules that enforce a mechanical property the pattern itself requires: commit atomicity (§1(g)), input freshness (§1(a)), schema integrity (§1(i)). These trace to principle corollaries, not to incidents or model behavior. They look generic ("commit after every transition", "verify input mtime against pipeline-start") because the property they enforce is generic. Interface contracts between components (output JSON validity, verdict-format conformance) belong here too: they are schema integrity at the dispatch boundary.
 
 3. **Structural distance preservation.** Two roles must stay apart. A scoring stage that learns which candidates the selection stage already favors begins scoring *to confirm* those candidates; the scores are no longer independent and downstream selection is silently corrupted. The rule keeps the roles apart. These rules derive from premise 1 (self-bias) and premise 5 (path-of-least-resistance) acting across roles.
 
@@ -34,7 +34,7 @@ Three placements, picked by *scope of breach*:
 
 The test: identify every surface from which the rule can be breached, then place it at the highest-frequency surface that catches every breach. If breach is reachable only from one stage, push the rule into that stage's doc. If every transition can breach it, CLAUDE.md is the right home, even at §2 cost.
 
-**Mandate vs procedure.** A common pattern: the *mandate* belongs in CLAUDE.md ("verify input freshness before every step"), the *procedure* belongs per stage ("the freshness check for stage X reads files A, B, C and compares mtime against pipeline-start"). These are not duplicates; the mandate creates the obligation, the procedure operationalizes it for a specific stage. CLAUDE.md says what must hold; the stage doc says how this stage holds it.
+**Mandate vs procedure.** A common pattern: the *mandate* belongs in CLAUDE.md ("verify input freshness before every step"), the *procedure* belongs per stage ("the freshness check for stage X reads files A, B, C and compares mtime against pipeline-start"). These are not duplicates; the mandate creates the obligation, the procedure operationalizes it for a specific stage. CLAUDE.md says what must hold; the stage doc says how this stage holds it. Pure-mandate rules with no per-stage procedure (boundary rules like "outputs are recommendations, not executions") have no procedure counterpart and live only in CLAUDE.md.
 
 ## Multi-surface restatement
 
@@ -79,6 +79,6 @@ For an existing CLAUDE.md, walk every numbered rule and answer:
 1. Which of the four sources does this rule trace to (incident, system property, structural distance, premise-5 anti-shortcut)?
 2. From which entry surfaces is breach reachable?
 3. Does the rule appear at every reachable entry surface?
-4. Is the rule placed at the highest-frequency surface that catches every breach, no higher? If the mandate is always-on but the procedure is stage-specific, are both pieces in their right homes?
+4. Is the rule placed at the highest-frequency surface that catches every breach, and not higher than that? "Not higher" means: if every breach path is reachable from one stage, the rule belongs in that stage's doc, not in CLAUDE.md. If the mandate is always-on but the procedure is stage-specific, are both pieces in their right homes?
 
 A rule that fails (1) is decoration; consider deleting. A rule that fails (3) silently misses breach paths; add the missing surfaces. A rule placed higher than (4) requires is paying §2 cost without justification; push it down.

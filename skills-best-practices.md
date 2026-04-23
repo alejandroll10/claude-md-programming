@@ -6,11 +6,11 @@ A skill is a self-contained capability the harness loads when triggered. Per §3
 
 ## The spectrum
 
-Skills span a real range. Pick the shape from the failure modes the skill must prevent, not from a default template.
+Skills span a wide range of shapes. Pick the shape from the failure modes the skill must prevent, not from a default template.
 
 | Shape | Example | Body content | When to use |
 |---|---|---|---|
-| Thin wrapper | One-line invocation of a script | Minimal: "run this with the user's query" | Tool whose misuse has no real cost |
+| Thin wrapper | One-line invocation of a script | Minimal: "run this with the user's query" | Tool whose misuse has no significant cost |
 | Tool with guidance | Script plus when/how to invoke, anti-triggers | Usage examples, "when NOT to use," output format | Tool the model would otherwise misuse or skip |
 | Workflow | All prose, no script | Step-by-step procedure, scoped invariants | Judgment-heavy task with side effects or invariants |
 
@@ -24,7 +24,7 @@ The frontmatter controls *when* the skill loads and *what* it can do. Both matte
 
 **`description:` is the trigger predicate.** The harness reads the description and decides whether to auto-load the skill based on whether it matches what the model is currently doing. Effective descriptions are written as predicates ("Use when you need real-time social-media sentiment", "Use to confirm a claim from web search with a precise timestamp"), not as labels ("Social-media search tool"). Too broad and the skill loads in contexts where it does not apply (the orchestrator's read-state-and-route turn pulls it in for no reason). Too narrow and the consumer never reaches it. Treat the description as the most important field in the file.
 
-**`argument-hint: ...`.** Tells the harness what arguments the skill expects when invoked, surfacing them in the user's `/skill` autocomplete. Use whenever the skill takes a positional argument (a query, a file path, a ticker). Three of the five real skills surveyed use this; absent it, the user has to read the SKILL.md to know what to type.
+**`argument-hint: ...`.** Tells the harness what arguments the skill expects when invoked, surfacing them in the user's `/skill` autocomplete. Use whenever the skill takes a positional argument (a query, a file path, an identifier). Without it, the user has to read the SKILL.md to know what to type.
 
 **`disable-model-invocation: true`.** The skill cannot auto-trigger. Only the user fires it explicitly. Right answer for skills with side effects the model should not initiate on its own (publishing, sending, irreversible external calls). Premise 5 (path-of-least-resistance) would otherwise let the model decide on its own to invoke.
 
@@ -36,7 +36,7 @@ Combine as defense in depth. A workflow skill with side effects often gets `disa
 
 ## Body content patterns
 
-Patterns that earn their place in real pipelines.
+Patterns that earn their place in production pipelines.
 
 **Trust calibration baked in.** When the skill's underlying tool is unreliable in non-obvious ways, declare the reliability profile in the SKILL.md so consumers do not over-trust. A math-verification skill backed by an external model that produces false positives ~50% of the time should open with "treat every output as a lead, not a verdict." This is premise 4 (stochastic error) localized to one capability. Skip when the tool is straightforward (a price lookup does not need a trust section).
 
@@ -54,7 +54,7 @@ Some invariants fire only when one capability is exercised: "never preview an up
 
 The skill itself is the right home. The skill is the only surface that travels with the capability. If the invariant must hold whenever this capability is used, write it in the SKILL.md.
 
-This is the §3 delegation corollary applied to skills: restate the invariant at the surface where breach is reachable. For skill-scoped invariants, that surface is the skill.
+A skill-scoped invariant is single-surface: the skill is the only surface from which it can be breached. Place it there and nowhere else. The §3 delegation corollary's multi-surface restatement does not apply, because there is only one surface.
 
 ## What this doc does not cover
 

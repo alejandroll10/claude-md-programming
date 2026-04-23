@@ -102,7 +102,7 @@ Some facts the pipeline reads describe the *environment*, not the work: which da
 
 ### Corollary (g): resumability is a property, not a feature
 
-A long-running pipeline outlives any single session (premise 10, infrastructure fails). Laptops sleep, processes get killed, tools rate-limit, connections drop. Stages carry non-idempotent side effects (artifact writes, agent dispatches, external API calls) that can't safely be replayed, so each transition must commit atomically and durably before the next begins. Batching multiple logical transitions into one write leaves the resume point ambiguous after a crash. Git commits, write-ahead logs, and append-only journals all qualify; the principle is the atomicity, not the tool.
+A long-running pipeline outlives any single session (premise 10, infrastructure fails). Laptops sleep, processes get killed, tools rate-limit, connections drop. Stages carry non-idempotent side effects (artifact writes, agent dispatches, external API calls) that can't safely be replayed, so each transition must commit atomically and durably before the next begins. Batching multiple logical transitions into one write leaves the resume point ambiguous after a crash. Git commits, write-ahead logs, and append-only journals all qualify; the principle is the atomicity, not the tool. On multi-host runs (a pipeline resumable from any of several machines), "durable" also means visible to peers: a local commit not yet pushed does not exist for the host that picks up the run next.
 
 This in turn demands a property on every stage: its effects must be either committed to state when the transition commit lands, or safely redoable from the post-commit state. A stage that writes artifacts without recording them in state leaves orphans after a crash; one that marks itself complete before finishing silently skips work on resume. On resume, the orchestrator should discard any uncommitted working-tree changes left by a crashed stage before continuing; doing so assumes the pipeline runs in a dedicated directory where untracked files are always orphan artifacts, never user work.
 
@@ -145,9 +145,10 @@ Consequences:
 
 §1 and §2 together force delegation. The machinery lives somewhere else, loaded or spawned only when needed.
 
-Three vehicles for delegation, ordered by cost and isolation:
+Four vehicles for delegation, each with a different cost and isolation profile:
 
-- **Docs.** Content the orchestrator reads on demand. Cheapest. Zero isolation: the content lands in the current context. Use for: stage procedures, reference material, content the orchestrator itself needs to act on. Stage docs specify the path, not just the goal. Premise 5 (path-of-least-resistance) fills underspecified paths with shortcuts.
+- **Docs.** Content the orchestrator reads on demand. Cheapest to author. Zero isolation: the content lands in the current context. Use for: stage procedures, reference material, content the orchestrator itself needs to act on. Stage docs specify the path, not just the goal. Premise 5 (path-of-least-resistance) fills underspecified paths with shortcuts.
+- **Scripts.** Deterministic code the orchestrator or an agent invokes directly (`bash`, `python`, etc.). No model tokens consumed during execution, no coherence drift inside the call. Use for: idempotent transforms, file generation, mechanical checks, schema validation. The decision to invoke is still the model's; the work is not. When the invocation needs a trigger predicate, usage guidance, or load-bearing invariants, wrap the script in a skill (see `skills-best-practices.md`, "scripts for deterministic ops; prose for judgment"). When the call site is fixed and the effect is narrow, invoke the script directly.
 - **Skills.** Self-contained modules (instructions, often with scripts or tools) that the harness loads on trigger. Lands in whoever is currently running (orchestrator or subagent). Use for: reusable capabilities that multiple workers need (math verification, domain formulas, standard workflows). Pairs especially well with agents: a fresh-context subagent loads only the skill it needs, without polluting the orchestrator.
 - **Agents.** Fresh-context sub-conversations with their own system prompt. Substantial (not total) context isolation: capability 8 (fresh instances are less correlated, not independent) is what makes isolation real rather than rhetorical. Use for: work needing independent judgment (premise 1, self-bias), long work that would pollute parent context (premise 2, long-context degradation), parallel execution, or any place stochastic-error re-sampling matters (premise 4, stochastic error).
 
@@ -156,6 +157,7 @@ Three vehicles for delegation, ordered by cost and isolation:
 | Situation | Vehicle |
 |---|---|
 | Content the orchestrator itself must read and act on | Doc |
+| Deterministic operation, no model judgment at run time | Script |
 | Reusable capability multiple workers need | Skill |
 | Work requiring isolation, fresh perspective, or parallelism | Agent |
 

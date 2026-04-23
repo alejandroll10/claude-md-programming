@@ -22,6 +22,22 @@ Four honest sources, in order of how reliable they are:
 
 If a candidate rule fits none of these four, it is probably ornament.
 
+## From incident to rule
+
+Source 1 (incidents) is the most common in practice. Translating an incident into a rule is a recurring move, and getting the translation wrong wastes the incident: the rule fires only for the one symptom, not for paraphrases of the same shortcut. A template:
+
+1. **Name the incident precisely, at the right level of generality.** Describe what the model did, in terms general enough that paraphrases of the same shortcut still count. "Consumed a stale input from a prior run" generalizes; "consumed yesterday's scores file on the Wednesday run" is a single instance the rule will not catch a week later when it recurs with different filenames.
+
+2. **Check load-bearingness.** Silent (no immediate error)? Cascading (downstream stages consumed the corruption)? Reachable from more than one entry surface? If no to any of the three, the rule is single-surface and lives in one place (stage doc or agent definition). Only when all three hold does multi-surface restatement apply ("Multi-surface restatement" below).
+
+3. **Enumerate entry surfaces.** For this incident, which surfaces could re-introduce the shortcut? CLAUDE.md (orchestrator dispatch), the stage doc (procedure this stage follows), the agent or skill definition (anywhere the capability runs, including outside the pipeline). Each surface the shortcut could enter from needs the rule.
+
+4. **Write the rule body to name the shortcut, not the symptom.** The symptom is the specific thing that broke; the shortcut is the model's underlying default (premise 5). "Do not reuse yesterday's scores file" names the symptom and catches only one instance. "Every pipeline step verifies input mtime against the pipeline-start marker before consuming" names the shortcut (defaulting to whatever file is at hand) and catches every paraphrase. The shortcut-named rule is the durable one.
+
+5. **Cite the incident in the rule body.** One concrete phrase that future readers (human and model) can pattern-match on when tempted by the same shortcut. The citation is not decorative; it is what keeps a future editor from deleting the rule after forgetting why it is there.
+
+**Worked example.** Incident: a scoring stage produced outputs dated the prior run; the downstream stage consumed them as current. Silent (no error raised), cascading (every downstream decision tainted), reachable from more than one surface (orchestrator dispatch of the stage, the stage's own procedure, the agent definition). The rule names the shortcut: "verify every input's mtime is later than the pipeline-start marker before consuming; if stale or missing, re-run the producing step." Placed as a mandate in CLAUDE.md and as a per-stage procedure in each stage doc listing the specific files that stage reads. The agent definition does not need it: the agent operates on whatever path the orchestrator hands it, and the check belongs upstream.
+
 ## Where invariants live
 
 Three placements, picked by *scope of breach*:

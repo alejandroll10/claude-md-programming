@@ -8,14 +8,14 @@ A sequence of decisions for starting a new pipeline, each mapped to the principl
 - [ ] Write the transition table: `(from_stage, verdict) → next_stage`. Include an `ERROR` row.
 - [ ] Draw the graph in CLAUDE.md. The orchestrator needs the whole shape at a glance (§1 corollary (b)).
 - [ ] If the pipeline has multiple flows selected by trigger phrase, declare the `mode` enum and the trigger-to-mode table in CLAUDE.md, each mode with its own transition table (`state-schema-patterns.md`, "Mode or variant flag").
-- [ ] List any stages that block on human-supplied input. They are declared stages with their own transition-table entries, not side-effects of other stages (`patterns.md`, "User-input stages").
+- [ ] List any stages that block on human-supplied input. They are declared stages with their own transition-table entries, not side-effects of other stages (`stages-best-practices.md`, "User-input stages").
 
 ## 2. State shape (§1 corollary (i), §2)
 
 - [ ] Declare the JSON schema alongside the graph. Routing fields only. No transcripts, no accumulated logs.
 - [ ] Commit a valid initial state at setup so the first run and a resume take the same code path (§1 corollary (h)).
 - [ ] Decide where observability goes (JSONL log, dashboard, commit messages). Never in routing state (§1 corollary (e)).
-- [ ] Specify the freshness check each stage runs before consuming intermediate inputs: mtime against pipeline-start, or an explicit freshness marker. Without this, a resumed run silently consumes prior-run outputs (§1 corollary (a)). Pair with a per-stage output post-check; see `patterns.md`, "Preflight / post-check bookends" for the dual pattern.
+- [ ] Specify the freshness check each stage runs before consuming intermediate inputs: mtime against pipeline-start, or an explicit freshness marker. Without this, a resumed run silently consumes prior-run outputs (§1 corollary (a)). Pair with a per-stage output post-check; see `stages-best-practices.md`, "Preflight / post-check bookends" for the dual pattern.
 
 ## 3. Environmental ground truth (§1 corollary (f))
 
@@ -34,7 +34,7 @@ For each stage:
 - [ ] Pick the vehicle: **doc** (orchestrator acts on it), **script** (deterministic code, no model judgment at run time), **skill** (capability the worker loads), **agent** (fresh-context subagent). See §3's table.
 - [ ] Default to agent for anything that produces the stage's artifact. Orchestrator routes, doesn't work (§1 corollary (d)).
 - [ ] If a skill is used by this stage, confirm it loads inside the dispatched agent, not in the orchestrator (§3).
-- [ ] Write the stage doc. It owns the local verdict space, the outgoing edges, and the per-stage preflight (upstream inputs) and post-check (this stage's outputs). See `patterns.md`, "Preflight / post-check bookends".
+- [ ] Write the stage doc. It owns the local verdict space, the outgoing edges, and the per-stage preflight (upstream inputs) and post-check (this stage's outputs). See `stages-best-practices.md`, "Preflight / post-check bookends".
 
 ## 6. Verification gates (§4)
 

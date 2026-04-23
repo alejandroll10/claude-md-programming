@@ -1,8 +1,8 @@
-# Patterns
+# Stages: best practices
 
-Operational patterns that cross surfaces (orchestrator, stages, agents) and do not sit cleanly inside one existing doc. Read `principles.md` first; this doc is applied, not foundational.
+How to author the stage docs under `docs/*.md` that the orchestrator loads on demand and acts on. Parallel to `subagents-best-practices.md` (agent files) and `skills-best-practices.md` (skill files). Read `principles.md` first; this doc is operational, not foundational.
 
-Patterns with a clear home already live there: correction-aware verifier verdicts in `subagents-best-practices.md`, multi-mode orchestrators in `state-schema-patterns.md` (Mode or variant flag), the scripts vehicle in `principles.md` §3. What is left here is the shape that fuses several principles into a stage-body bookend, and the one stage type the principles otherwise assume away.
+A stage doc owns the local verdict space, the outgoing edges, and the procedure for the stage body. Two shapes recur across stage authors regardless of domain and do not have a natural home in the other docs: the preflight/post-check that bookends every stage body, and the special shape of a stage that blocks on user input.
 
 ## Preflight / post-check bookends
 

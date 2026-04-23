@@ -74,7 +74,7 @@ If any fail: signal failure, do not transition.
 ## Verdict space
 
 - `PUBLISHED`: draft passed rate, formatted, appended to ledger.
-- `RATE_LIMITED`: category rate exceeded; ledger entry written, item returned to queue tail.
+- `RATE_LIMITED`: category rate exceeded; ledger entry written (`decision: "rate_limited"`); `items_completed` advances; item is not republished this run.
 - `DROPPED`: HARD-FAIL budget or delta trigger fired; ledger entry with drop reason; advance.
 - `ERROR`: draft missing, formatter failed unrecoverably, or ledger write failed.
 

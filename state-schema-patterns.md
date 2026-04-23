@@ -12,7 +12,7 @@ These two fields together define resumability. A new run reads them and either s
 
 ## Common patterns (most pipelines)
 
-**Counter family.** Per-loop counters that feed termination predicates (§5). One counter per loop body, one per escalation stage. Real pipelines accumulate many: `problem_attempt`, `idea_round`, `theory_version`, `referee_round`, `pivot_round`, `stuck_count`, `fix_empirics_rounds`. Each has a budget cap somewhere in CLAUDE.md or a stage doc. Counters reset only on the transition that ends their loop (`stuck_count` resets on ACCEPT, not on any other event). The reset rules belong with the counter declaration so the orchestrator does not invent them per run.
+**Counter family.** Per-loop counters that feed termination predicates (§5). One counter per loop body, one per escalation stage. Pipelines accumulate many: `attempt`, `round`, `version`, `revision`, `pivot`, `stuck_count`, `retry_count`. Each has a budget cap somewhere in CLAUDE.md or a stage doc. Counters reset only on the transition that ends their loop (`stuck_count` resets on ACCEPT, not on any other event). The reset rules belong with the counter declaration so the orchestrator does not invent them per run.
 
 **Mode or variant flag.** When one CLAUDE.md serves multiple flows (a pipeline with both a "quick scan" mode and a "full rebuild" mode), the active flow is a state field. The orchestrator routes on it before consulting `current_stage`.
 
@@ -26,7 +26,7 @@ These two fields together define resumability. A new run reads them and either s
 
 ## Pointers, not bodies
 
-State holds *paths and identifiers*, not the artifacts they point to. `current_problem_id: 42` not the problem statement; `verdict_path: "output/verify_42.json"` not the verdict. §2 (context costly) applies to state because state is read at every transition. A 2KB state file read 1000 times is 2MB; a 200KB state file is 200MB. The same artifact rule that applies to dispatch prompts applies to state.
+State holds *paths and identifiers*, not the artifacts they point to. `current_problem_id: 42` not the problem statement; `verdict_path: "output/verify_42.json"` not the verdict. §2 (context costly) applies to state because state is read at every transition. A 2KB state file read 1000 times is 2MB; a 200KB state file is 200MB.
 
 ## The history-array tension
 

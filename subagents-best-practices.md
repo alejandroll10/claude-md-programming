@@ -12,13 +12,13 @@ A subagent definition has three layers, and most authoring mistakes come from pu
 
 ## Layer 1: frontmatter
 
-**`description:` is the dispatch trigger, not a label.** The harness uses the description to decide whether to auto-route a task to this agent. Effective descriptions are written as trigger predicates ("Use when verifying a proof for mathematical errors") not human-readable names ("Math verifier"). A description that's too broad pulls the agent into work it shouldn't do; too narrow and the orchestrator never reaches it. This is the dispatch analog of `tools:`: a misconfigured description silently routes wrong, the same way a missing tool silently fails to enforce.
+**`description:` is the dispatch trigger, not a label.** The harness uses the description to decide whether to auto-route a task to this agent. Effective descriptions are written as trigger predicates ("Use when verifying a proof for mathematical errors") not human-readable names ("Math verifier"). A description that's too broad pulls the agent into work it shouldn't do; too narrow and the orchestrator never reaches it.
 
 **Tool restriction is enforcement, not advice.** A verifier with edit access "fixes" the artifact instead of reporting it broken (premise 5, path-of-least-resistance). Writing "do not edit the file" in the system prompt is not the same as withholding the tool. Verifiers get read-only tools; workers do not get the Task tool (or other ability to spawn subagents); only the orchestrator's privileged role gets state-mutation access.
 
 **Model choice is a correlation lever.** Premise 8 (fresh instances are less correlated, not independent) has a floor at the model-level correlation. Two verifiers on the same model share blind spots that distinct framings (§4(c)) can only partially break. Crossing models lowers the floor. If the orchestrator runs Opus, a Haiku verifier and a Sonnet verifier give a measurable correlation drop a same-model pair can't. The `model:` field is optional; omit it to inherit from the orchestrator, set it explicitly when correlation reduction matters.
 
-**`skills:` attaches capabilities at the frontmatter layer.** When an agent needs a domain skill (a verification helper, an external-data fetcher, a fact-checker), list it in `skills:` rather than expecting the agent to discover it. This makes the dependency explicit and audit-able. See `skills-best-practices.md` for skill authoring; the attachment is a frontmatter concern.
+**`skills:` attaches capabilities at the frontmatter layer.** When an agent needs a domain skill (a verification helper, an external-data fetcher, a fact-checker), list it in `skills:` rather than expecting the agent to discover it. This makes the dependency explicit. See `skills-best-practices.md` for skill authoring; the attachment is a frontmatter concern.
 
 ## Layer 2: system prompt
 
@@ -40,7 +40,7 @@ This is what changes per invocation. The hygiene rules apply every dispatch.
 
 **Pass only what this call needs.** Not the orchestrator's accumulated state, not the full verdict history, not "we've tried this three times." Premise 2 (long-context degradation) hits the agent's context the same way it hits the orchestrator's. Per-call inputs that the orchestrator already filtered are the right shape.
 
-**Worker isolation from verifier signal (§4(a), §4(d)).** When dispatching a retry, the orchestrator must not include "the verifier said X." This is a dispatch-protocol rule, not an agent-definition rule, and lives only in the orchestrator's dispatch step. It is invisible from the agent's side, so it cannot be enforced in the agent file. Audit the dispatch code, not the agent definition.
+**Worker isolation from verifier signal (§4(a), §4(d)).** When dispatching a retry, the orchestrator must not include "the verifier said X." This is a dispatch-protocol rule, not an agent-definition rule, and lives only in the orchestrator's dispatch step. Audit the dispatch code, not the agent definition.
 
 ## The split is the skill
 

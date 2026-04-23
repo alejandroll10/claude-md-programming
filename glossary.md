@@ -4,7 +4,7 @@ One-line definitions for terms used across `principles.md`, `checklist.md`, and 
 
 ## Architecture
 
-- **Orchestrator.** The always-on LLM session with `CLAUDE.md` loaded. Reads state, dispatches stages, updates state, commits. Does not do stage-level work, with narrow exceptions for decisions that depend on information only it has (§1 corollary (d)).
+- **Orchestrator.** The always-on LLM session with `CLAUDE.md` loaded. Reads state, dispatches stages, updates state, commits. Does not do stage-level work, with exceptions for decisions that depend on information only it has (§1 corollary (d)).
 - **Transition.** One step of the orchestrator loop: read state, dispatch stage, receive verdict, update state, commit (§1).
 - **Dispatch.** The orchestrator launching a stage's worker (usually a fresh-context agent) with the inputs the stage doc specifies (§1, §3).
 - **Stage.** One unit of pipeline work, typically a single subagent dispatch, with a declared verdict space (§1).

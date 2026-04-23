@@ -48,8 +48,6 @@ Some load-bearing invariants are reachable from more than one entry surface. The
 
 ## Patterns worth recognizing
 
-These shapes recur.
-
 **Discrimination invariants.** A rule that forces an explicit choice between two states the model would otherwise collapse. Example: distinguishing "the stage chose not to produce an artifact" from "the stage could not produce an artifact yet and will retry on a later trigger." The invariant names both states and forces an explicit pick. Premise 5 collapses them unless the discrimination is enforced.
 
 **Boundary invariants.** A rule that defines the system's edge. "Outputs are recommendations, not executions." "Publish results only after the side effect has confirmed." These are usually short, often safety-related, and always-on (their whole purpose is bounding what the autonomous system is authorized to do).

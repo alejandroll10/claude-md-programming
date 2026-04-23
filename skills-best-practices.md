@@ -2,11 +2,11 @@
 
 How to author the `.claude/skills/<name>/SKILL.md` files (and their scripts) that workers and the orchestrator load on trigger. Read `principles.md` first; this doc is operational, not foundational.
 
-A skill is a self-contained capability the harness loads when triggered. Per §3, it lands in whoever is currently running, so the placement question is: which agent or stage actually needs it, and does the skill's description trigger only there?
+A skill is a self-contained capability the harness loads when triggered. Per §3, it lands in whoever is currently running, so the placement question is: which agent or stage needs it, and does the skill's description trigger only there?
 
 ## The spectrum
 
-Skills span a wide range of shapes. Pick the shape from the failure modes the skill must prevent, not from a default template.
+Skills span a wide range of shapes:
 
 | Shape | Example | Body content | When to use |
 |---|---|---|---|

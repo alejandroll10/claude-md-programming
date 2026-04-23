@@ -25,4 +25,4 @@ The orchestrator is a single long-running Claude Code session (typically launche
 
 ## Status
 
-Early. Intentionally short. We expand only as the principles prove themselves against real projects.
+Early. Intentionally short. We expand only as the principles prove themselves in production.

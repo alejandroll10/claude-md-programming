@@ -7,7 +7,7 @@ A sequence of decisions for starting a new pipeline, each mapped to the principl
 - [ ] List the stages, in order. Each stage is a single subagent dispatch with a clear verdict space.
 - [ ] Write the transition table: `(from_stage, verdict) → next_stage`. Include an `ERROR` row.
 - [ ] Draw the graph in CLAUDE.md. The orchestrator needs the whole shape at a glance (§1 corollary (b)).
-- [ ] If the pipeline has multiple flows selected by trigger phrase, declare the `mode` enum and the trigger-to-mode table in CLAUDE.md. Each mode has its own transition table; `current_stage` is interpreted within the active mode (`patterns.md`, "Multi-mode orchestrators").
+- [ ] If the pipeline has multiple flows selected by trigger phrase, declare the `mode` enum and the trigger-to-mode table in CLAUDE.md, each mode with its own transition table (`patterns.md`, "Multi-mode orchestrators").
 - [ ] List any stages that block on human-supplied input. They are declared stages with their own transition-table entries, not side-effects of other stages (`patterns.md`, "User-input stages").
 
 ## 2. State shape (§1 corollary (i), §2)

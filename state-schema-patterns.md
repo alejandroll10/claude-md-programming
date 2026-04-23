@@ -51,7 +51,7 @@ Patterns:
 
 - **Append-only, never rewritten.** A stage appends one entry per transition of interest; prior entries are immutable. Premise 3 (coherence drift) bites if the ledger is mutable: a retroactive rewrite makes last run's story look better, and downstream constraints compute on fiction.
 - **Schema per entry is closed.** Every entry conforms to a declared per-entry shape, the same way routing state has a schema (§1 corollary (i)). A stage that needs a new field declares a schema change, not a one-off entry.
-- **Derived queries live in the stage that needs them.** The rolling-window sum, the "last two entries equal" test, the "most-recent catalyst" lookup belong in the stage doc that routes on them. Do not copy the ledger into routing state; compute over the ledger and route on the scalar.
+- **Derived queries live in the stage that needs them.** The rolling-window sum, the "last two entries equal" test, the "most-recent catalyst" lookup belong in the stage doc that routes on them. Compute over the ledger and route on the scalar; copying the ledger into routing state violates §2.
 - **Provenance per entry.** Who wrote it, when, what decision, what verdict. Without provenance a ledger is rows later stages cannot reason about.
 
 **When a ledger is the right shape.** Constraints of the form "this kind of event can happen at most N times per window" or "this kind of event requires that other event to precede it". A counter in routing state loses the per-event detail those constraints need.

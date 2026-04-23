@@ -35,7 +35,7 @@ Key properties:
 - **Freshness anchor is the pipeline-start timestamp, not the calendar date.** Long runs cross midnight; a file written at 23:50 is fresh when the downstream stage runs at 00:30. Use `pipeline_state.history[0].timestamp` (see `state-schema-patterns.md`, "Earn its place") as the anchor.
 - **Each stage declares its own preflight and post-check in its stage doc**, naming the exact files and predicates. The mandate ("every stage verifies freshness") belongs in CLAUDE.md; the per-stage procedure belongs in the stage doc (see `invariants.md`, "Mandate vs procedure").
 - **Preflight of stage N replicates the post-check of stages N depends on.** Intentional redundancy: the producer's post-check catches producer-side failure; the consumer's preflight catches cross-stage corruption between commit and consume (rollback orphans, manual edits, multi-host races).
-- **Predicates beyond existence.** Empty files pass existence. Add at least one of: size threshold, schema parse, expected-key presence, date-column equality, row-count lower bound. The cheapest predicate that detects a failure mode you have actually seen.
+- **Predicates beyond existence.** Empty files pass existence. Add at least one of: size threshold, schema parse, expected-key presence, date-column equality, row-count lower bound. The cheapest predicate that covers a known failure mode for the artifact type.
 - **Failures are signal, not noise (§5(c)).** A stale input or a malformed output is a task-level failure counted against the signal-failure counter. Distinct from dispatch-layer retries for infrastructure failures.
 
 Antipatterns:
@@ -98,7 +98,7 @@ Antipattern: branching on `mode` inside every stage body. That puts mode-level r
 
 ## User-input stages
 
-Autonomous is not the same as no human input. Some pipelines legitimately block for a human-supplied value before proceeding: current position weights from a platform, a target or budget adjusted between runs, a signoff on an irreversible step. These need explicit handling because the principles otherwise assume every dispatch returns a verdict from an agent or a script.
+Some pipelines legitimately block for a human-supplied value before proceeding: a parameter the user adjusts between runs, a snapshot captured from an external system the orchestrator cannot query, a signoff on an irreversible step. The principles otherwise assume every dispatch returns a verdict from an agent or a script, so these stages need explicit handling.
 
 Shape:
 
@@ -109,4 +109,4 @@ Shape:
 - **Resume semantics are explicit.** If the run crashed after the user supplied the value, resume must not re-ask. The value lives in committed state; `status == "running"` with the field populated means proceed, not re-prompt.
 - **Observability posts the handoff.** When the orchestrator blocks for input, an observability entry (Slack, dashboard, email) announces the block; when the value arrives, a second entry confirms. Without this, a remote observer cannot distinguish a blocked run from a crashed one.
 
-Antipattern: treating the user as just another agent. The user is asynchronous and untyped; premise 4 (stochastic error) applies worse, premise 8 (fresh-instance independence) does not apply at all. Every user-supplied value needs its own validation, not an implicit trust.
+Antipattern: treating the user as just another agent. The user is asynchronous and untyped, and the premises about LLM sampling (4, 8) do not apply to human inputs. Every user-supplied value needs its own validation at the next stage's preflight, not an implicit trust.

@@ -29,7 +29,7 @@ If any fail: emit `ERROR`.
    Compare to the category rate limit (default: 3 per 24h per category; adjust in practice).
 
 2. **Decision branch.**
-   - **Rate exceeded:** emit `RATE_LIMITED`. Write a ledger entry with `decision: "rate_limited"` so the constraint remains auditable; the orchestrator returns the item to the queue tail per `docs/mode_full.md`.
+   - **Rate exceeded:** emit `RATE_LIMITED`. Write a ledger entry with `decision: "rate_limited"` so the constraint remains auditable; the orchestrator advances `items_completed` and moves to the next item (the item is not republished this run).
    - **HARD-FAIL budget exhausted upstream** (`hard_fail_count[id] >= 2`): emit `DROPPED`. Write a ledger entry with `decision: "dropped_hard_fail"`.
    - **Delta trigger** (`soft_fail_streak[id] >= 2`): emit `DROPPED`. Write a ledger entry with `decision: "dropped_delta"`.
    - **Otherwise:** proceed to format + publish.

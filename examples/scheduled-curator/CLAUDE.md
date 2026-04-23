@@ -20,7 +20,7 @@ Shape:
   "mode": "scan" | "full",
   "current_stage": "intake" | "triage" | "draft" | "verify" | "publish",
   "status": "running" | "complete" | "stuck",
-  "pipeline_started_at": null,          // ISO 8601 UTC, set by the first stage; freshness anchor for §1(a)
+  "pipeline_started_at": null,          // ISO 8601 UTC, set at launch before the first stage; freshness anchor for §1(a)
   "queue": {                             // populated by the user-input intake stage (full mode only)
     "path": null,
     "source": null,                      // e.g., "user 2026-04-23T14:00Z"
@@ -30,7 +30,8 @@ Shape:
   },
   "current_item_id": null,               // the id being processed in the per-item loop (full mode)
   "items_completed": 0,
-  "soft_fail_streak": {},                // per-item id: count of consecutive SOFT-FAIL rounds, for delta trigger
+  "soft_fail_streak": {},                // per-item id: count of consecutive same-class SOFT-FAIL rounds, for delta trigger
+  "soft_fail_prior_class_set": {},       // per-item id: the prior round's verifier class set; needed for the streak comparison to survive crashes
   "hard_fail_count": {},                 // per-item id: count of HARD-FAIL drafts, budget 2 per item
   "fallback_used": null                   // populated when intake downgrades (§5 corollary (f))
 }
@@ -102,7 +103,7 @@ Top-level ERROR routing (applies in both modes):
 
 1. **The drafter never sees verifier verdicts or critiques from prior rounds on the same item.** A visible target invites gaming (§4 corollary (d)); self-bias (premise 1) defends prior output. The orchestrator's retry prompt to `drafter` passes only the original queue item, not prior drafts or feedback. Restated in `docs/stage_draft.md`, `docs/stage_verify.md`, and `.claude/agents/drafter.md`.
 2. **Verifiers do not see each other's framings, verdicts, or critiques.** Identical instructions collapse the §4(b) independence to one sample (§4 corollary (c)). Each verifier is dispatched independently in parallel with only the drafted artifact as input. Restated in `docs/stage_verify.md`, `.claude/agents/verifier-structured.md`, `.claude/agents/verifier-skeptic.md`.
-3. **Publish consults the ledger for the rolling-window rate before appending.** Category rate > limit means hold the item (not drop): the item returns to the queue tail with a `rate-limited` marker. Silent publish past the limit corrupts the constraint the ledger exists to enforce. Restated in `docs/stage_publish.md`.
+3. **Publish consults the ledger for the rolling-window rate before appending.** Category rate > limit means the item is not published this run: the publish stage writes a `decision: "rate_limited"` ledger entry, `items_completed` advances, and the run moves on. Silent publish past the limit corrupts the constraint the ledger exists to enforce. Restated in `docs/stage_publish.md`.
 4. **Every stage verifies input freshness against `pipeline_started_at` before consuming.** Silent consumption of stale files from a prior run is the most likely cross-stage corruption (§1 corollary (a)). Restated as a per-stage preflight in every stage doc.
 5. **One commit per stage transition, atomic and durable.** On multi-host runs, push after each commit so a peer host resumes from the committed state, not the local state (§1 corollary (g)).
 

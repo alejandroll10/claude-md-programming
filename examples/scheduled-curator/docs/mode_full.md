@@ -29,7 +29,7 @@ intake ──→ (per item in queue.item_ids):
 | verify  | SOFT-FAIL    | publish   | `soft_fail_streak[id]` updated per the rule below; corrections list passed to publish |
 | verify  | HARD-FAIL    | draft     | `++hard_fail_count[id]`; if `>=2`, route to publish with `decision: dropped_hard_fail` |
 | publish | PUBLISHED    | next      | `++items_completed`; advance `current_item_id`; `soft_fail_streak[id]=0`     |
-| publish | RATE_LIMITED | next      | item returned to queue tail with marker; `++items_completed` skipped; advance `current_item_id` |
+| publish | RATE_LIMITED | next      | ledger entry `decision: "rate_limited"` recorded; `++items_completed`; advance `current_item_id`. The item is not republished this run; future runs pick it up from source if the caller requeues it. |
 | publish | DROPPED      | next      | ledger append with drop reason; `++items_completed`; advance `current_item_id` |
 | (loop)  | (last item done) | terminate | `status = complete`                                                     |
 
@@ -37,11 +37,11 @@ intake ──→ (per item in queue.item_ids):
 
 The orchestrator computes `soft_fail_streak[id]` on each verify transition, not the verify stage. The rule:
 
-- `SOFT-FAIL` and class set equals the prior round's class set for this item: `soft_fail_streak[id] += 1`.
-- `SOFT-FAIL` and class set differs: `soft_fail_streak[id] = 1`.
-- `PASS`, `HARD-FAIL`, `ERROR`: `soft_fail_streak[id] = 0`.
+- `SOFT-FAIL` and current class set equals `soft_fail_prior_class_set[id]`: `soft_fail_streak[id] += 1`; `soft_fail_prior_class_set[id]` is unchanged.
+- `SOFT-FAIL` and current class set differs: `soft_fail_streak[id] = 1`; `soft_fail_prior_class_set[id] = <current class set>`.
+- `PASS`, `HARD-FAIL`, `ERROR`: `soft_fail_streak[id] = 0`; `soft_fail_prior_class_set[id] = null`.
 
-The verify stage reports the current round's class set; storage of the prior round's class set for comparison lives in the orchestrator's local variable across iterations (not in routing state, since it only matters for the immediately next decision).
+The verify stage reports the current round's class set. The prior round's class set is committed to routing state in `soft_fail_prior_class_set[id]` alongside the streak counter, so the comparison survives a mid-loop crash (§1 corollary (a), §1 corollary (g)).
 
 When `soft_fail_streak[id] >= 2` after the update above, the delta trigger fires: the publish stage writes a `dropped_delta` ledger entry and the orchestrator advances to the next item. Same bookkeeping as `DROPPED`.
 

@@ -52,6 +52,6 @@ If any fail: signal failure, do not transition.
 
 ## Restated invariants
 
-1. **The queue's source, timestamp, and checksum must all be recorded** (§1 corollary (f), "provenance for snapshots"). An unprovenanced queue file cannot be distinguished from a prior-run leftover.
+1. **The queue's source, timestamp, and checksum must all be recorded** (`../../state-schema-patterns.md`, "Input snapshot with provenance"). An unprovenanced queue file cannot be distinguished from a prior-run leftover.
 2. **A stale `queue.path` from a prior run is not consumed silently** (CLAUDE.md invariant 4). The `confirmed_at > pipeline_started_at` check enforces this at preflight. Without it, a resumed run would process yesterday's batch as today's.
 3. **One commit per stage transition, atomic and durable** (CLAUDE.md invariant 5). The `queue.*` fields, `pipeline_started_at`, and any `fallback_used` marker must all land in the same commit as the transition.

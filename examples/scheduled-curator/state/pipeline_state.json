@@ -13,6 +13,7 @@
   "current_item_id": null,
   "items_completed": 0,
   "soft_fail_streak": {},
+  "soft_fail_prior_class_set": {},
   "hard_fail_count": {},
   "fallback_used": null
 }

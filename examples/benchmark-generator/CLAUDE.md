@@ -4,7 +4,7 @@ Autonomously produce `target` verified `(problem, solution, tests)` triples on a
 
 ## Pipeline state
 
-Tracked in `state/pipeline_state.json`. Read at session start; update after every stage transition; commit every update atomically (§1 corollary (a) of `../../principles.md`).
+Tracked in `state/pipeline_state.json`. Read at session start; update after every stage transition; commit every update atomically (§1 corollary (g) of `../../principles.md`).
 
 Shape:
 

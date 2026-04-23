@@ -20,6 +20,7 @@ The orchestrator is a single long-running Claude Code session (typically launche
 - [`subagents-best-practices.md`](subagents-best-practices.md): operational guidance for authoring `.claude/agents/*.md` workers and verifiers.
 - [`skills-best-practices.md`](skills-best-practices.md): operational guidance for authoring `.claude/skills/*/SKILL.md` capabilities.
 - [`state-schema-patterns.md`](state-schema-patterns.md): patterns for shaping the routing-state JSON, distilled from real pipelines.
+- [`invariants.md`](invariants.md): identifying load-bearing rules, placing them at the right surface, and restating across surfaces when breach is multi-path.
 - [`examples/benchmark-generator/`](examples/benchmark-generator/): a worked example translating the principles into concrete CLAUDE.md, state, stage docs, and agent definitions.
 
 ## Status
